@@ -1,0 +1,26 @@
+{
+  "trained_at": "2026-03-10T18:15:12.414529",
+  "model_version": "v2_public_recency_weighted",
+  "target_type": "Quidax USDT/NGN close (OTC execution price)",
+  "training_rows": 22313,
+  "holdout_rows": 3938,
+  "n_features": 42,
+  "holdout_dir_acc": 57.26,
+  "holdout_dir_acc_at_30bps": 76.92,
+  "holdout_net_pnl_bps": 1796.77,
+  "holdout_trades_at_30bps": 26,
+  "holdout_mae": 0.001274,
+  "recommended_threshold": 0.003,
+  "recency_half_life_days": 180,
+  "xgb_params": {
+    "n_estimators": 491,
+    "max_depth": 7,
+    "learning_rate": 0.0338299751135883,
+    "subsample": 0.6073434124051657,
+    "colsample_bytree": 0.7096858517889113,
+    "reg_lambda": 2.3488244901159065,
+    "min_child_weight": 50
+  },
+  "data_start": "2020-01-08 12:00:00+00:00",
+  "data_end": "2026-03-10 02:00:00+00:00"
+}
