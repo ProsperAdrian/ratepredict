@@ -20,17 +20,9 @@ class Settings(BaseSettings):
     app_version: str = "1.0.0"
 
     base_dir: Path = Path(__file__).resolve().parent.parent
-    artifacts_dir: Path = None  # type: ignore[assignment]
-    data_dir: Path = None  # type: ignore[assignment]
-    runtime_dir: Path = None  # type: ignore[assignment]
-
-    def model_post_init(self, __context: object) -> None:
-        if self.artifacts_dir is None:
-            self.artifacts_dir = self.base_dir / "artifacts"
-        if self.data_dir is None:
-            self.data_dir = self.base_dir / "data" / "latest"
-        if self.runtime_dir is None:
-            self.runtime_dir = self.base_dir / "runtime"
+    artifacts_dir: Path = Path(__file__).resolve().parent.parent / "artifacts"
+    data_dir: Path = Path(__file__).resolve().parent.parent / "data" / "latest"
+    runtime_dir: Path = Path(__file__).resolve().parent.parent / "runtime"
 
     export_glob: str = "bquxjob_*.csv"
     runtime_bars_filename: str = "quidax_runtime_2h.csv"
