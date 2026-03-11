@@ -62,7 +62,48 @@ class ExternalDailyMarketDataService:
             if not self.settings.external_live_fallback_enabled:
                 return MarketFetchResult(frame=frame.loc[frame.index >= start_ts], statuses=statuses)
 
-        return self.fetch_live(start=start, end=end)
+        try:
+            live = self.fetch_live(start=start, end=end)
+        except Exception as exc:
+            if cached is None:
+                raise
+            frame, statuses = cached
+            statuses = statuses + [
+                SourceStatus(
+                    source_id="external_daily_live",
+                    status="degraded",
+                    latest_timestamp=frame.index.max().to_pydatetime(),
+                    message=f"Using cache because live refresh failed: {exc}",
+                )
+            ]
+            return MarketFetchResult(frame=frame.loc[frame.index >= start_ts], statuses=statuses)
+
+        if cached is None:
+            self.write_cache(live.frame)
+            return MarketFetchResult(frame=live.frame.loc[live.frame.index >= start_ts], statuses=live.statuses)
+
+        cached_frame, cached_statuses = cached
+        combined = live.frame.combine_first(cached_frame).sort_index()
+        self.write_cache(combined)
+
+        missing_live_aliases = [
+            alias for alias in self.settings.yahoo_tickers.values()
+            if alias not in live.frame.columns and alias in cached_frame.columns
+        ]
+        statuses = live.statuses.copy()
+        statuses.append(
+            SourceStatus(
+                source_id="external_daily_cache",
+                status="degraded" if missing_live_aliases else "ok",
+                latest_timestamp=combined.index.max().to_pydatetime(),
+                message=(
+                    f"Filled live gaps from cache for: {', '.join(missing_live_aliases)}"
+                    if missing_live_aliases
+                    else "Live refresh merged into cache"
+                ),
+            )
+        )
+        return MarketFetchResult(frame=combined.loc[combined.index >= start_ts], statuses=statuses)
 
     def fetch_live(self, start: datetime, end: datetime) -> MarketFetchResult:
         import yfinance as yf
@@ -106,6 +147,8 @@ class ExternalDailyMarketDataService:
             raise RuntimeError("External daily market data returned no usable series.")
 
         frame = pd.concat(external_frames, axis=1).sort_index()
+        expected_aliases = list(self.settings.yahoo_tickers.values())
+        frame = frame.reindex(columns=expected_aliases)
         return MarketFetchResult(frame=frame, statuses=statuses)
 
     def load_cached(self) -> tuple[pd.DataFrame, list[SourceStatus]] | None:

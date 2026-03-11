@@ -4,7 +4,12 @@ from functools import lru_cache
 from pathlib import Path
 
 from pydantic import Field, field_validator
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic_settings import BaseSettings, PydanticBaseSettingsSource, SettingsConfigDict
+
+GEMINI_MODEL_ALIASES = {
+    "gemini-3.1-flash": "gemini-3-flash-preview",
+    "gemini-3-flash": "gemini-3-flash-preview",
+}
 
 
 class Settings(BaseSettings):
@@ -31,11 +36,17 @@ class Settings(BaseSettings):
     quidax_kline_period_minutes: int = 120
 
     gemini_api_key: str | None = None
-    gemini_model: str = "gemini-2.5-flash"
+    gemini_model: str = "gemini-3-flash-preview"
     gemini_timeout_seconds: float = 20.0
 
     auto_refresh_enabled: bool = False
     auto_refresh_seconds: int = 900
+
+    news_enabled: bool = True
+    news_cache_ttl_seconds: int = 900
+    news_max_items: int = 50
+    news_max_age_hours: int = 72
+    news_fetch_timeout_seconds: float = 10.0
 
     quidax_usdtngn_ticker_url: str = "https://app.quidax.io/api/v1/markets/tickers/usdtngn"
     quidax_btcngn_ticker_url: str = "https://app.quidax.io/api/v1/markets/tickers/btcngn"
@@ -61,6 +72,29 @@ class Settings(BaseSettings):
         stripped = value.strip()
         return stripped or None
 
+    @field_validator("gemini_model", mode="before")
+    @classmethod
+    def normalize_gemini_model(cls, value: str | None) -> str:
+        if value is None:
+            return "gemini-3-flash-preview"
+        stripped = str(value).strip().lower()
+        if not stripped:
+            return "gemini-3-flash-preview"
+        return GEMINI_MODEL_ALIASES.get(stripped, stripped)
+
+    @classmethod
+    def settings_customise_sources(
+        cls,
+        settings_cls: type[BaseSettings],
+        init_settings: PydanticBaseSettingsSource,
+        env_settings: PydanticBaseSettingsSource,
+        dotenv_settings: PydanticBaseSettingsSource,
+        file_secret_settings: PydanticBaseSettingsSource,
+    ) -> tuple[PydanticBaseSettingsSource, ...]:
+        # In this app, the project-local .env should win over any exported shell
+        # variables so the dashboard uses the workspace configuration the user sees.
+        return init_settings, dotenv_settings, env_settings, file_secret_settings
+
 
 @lru_cache
 def get_settings() -> Settings:
@@ -68,3 +102,8 @@ def get_settings() -> Settings:
     settings.runtime_dir.mkdir(parents=True, exist_ok=True)
     settings.data_dir.mkdir(parents=True, exist_ok=True)
     return settings
+
+
+def reload_settings() -> Settings:
+    get_settings.cache_clear()
+    return get_settings()
