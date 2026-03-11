@@ -10,7 +10,7 @@ from app.config import Settings
 from app.schemas import InferenceSnapshot, MarketBrief, ModelBreakdown, SourceStatus, TopFeature
 from app.services.artifacts import ArtifactBundle, ArtifactLoader, ExportLoader
 from app.services.features import PublicFeatureBuilder
-from app.services.gemini import GeminiBriefService
+from app.services.gemini_ai import GeminiAIContextEngine as GeminiBriefService
 from app.services.market_data import ExternalDailyMarketDataService, QuidaxMarketSnapshot, QuidaxTickerService
 
 
