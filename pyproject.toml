@@ -2,18 +2,18 @@
 name = "ratepredict-live"
 version = "0.1.0"
 description = "Production-grade live inference app for Quidax USD/NGN decision intelligence"
-requires-python = ">=3.12"
+requires-python = ">=3.10"
 dependencies = [
   "streamlit>=1.41.0",
-  "plotly>=6.0.0",
-  "pandas>=3.0.1",
-  "numpy>=2.4.3",
-  "yfinance>=1.2.0",
+  "plotly>=5.18.0",
+  "pandas>=1.5.0,<3",
+  "numpy>=1.24.0",
+  "yfinance>=0.2.30",
   "scikit-learn==1.6.1",
-  "xgboost>=3.2.0",
-  "lightgbm>=4.6.0",
-  "httpx>=0.28.1",
-  "pydantic-settings>=2.13.1",
+  "xgboost>=2.0.0",
+  "lightgbm>=4.0.0",
+  "httpx>=0.25.0",
+  "pydantic-settings>=2.0.0",
 ]
 
 [build-system]
