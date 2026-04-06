@@ -1,6 +1,6 @@
-# Quidax USD/NGN Decision Intelligence
+# USD/NGN Decision Intelligence
 
-This repository implements the production specification for a world-class USD/NGN 2-hour decision intelligence system for the Quidax OTC desk.
+This repository implements the production specification for a world-class USD/NGN 2-hour decision intelligence system for an OTC desk.
 
 It contains two layers:
 
@@ -26,11 +26,11 @@ It contains two layers:
 
 - Launch posture: human in the loop.
 - Risk posture: capital preservation.
-- Primary objective: predict the next 2-hour move of the Quidax USDT/NGN close, because that is the OTC execution price.
+- Primary objective: predict the next 2-hour move of the USDT/NGN close, because that is the OTC execution price.
 - Cross-venue and macro series remain exogenous features, not target components.
 - Economic continuation gate: `+15 bps` monthly incremental net alpha versus passive spread-capture baseline.
 - Included feature families must justify themselves in ablations; any family that does not improve signal quality or economics should be removed.
-- Live `usdtngn` and `btcngn` quotes are fetched directly from the Quidax public ticker endpoints.
+- Live `usdtngn` and `btcngn` quotes are fetched directly from the public ticker endpoints.
 
 ## Verification
 
