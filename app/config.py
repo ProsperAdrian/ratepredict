@@ -3,7 +3,7 @@ from __future__ import annotations
 from functools import lru_cache
 from pathlib import Path
 
-from pydantic import Field, field_validator
+from pydantic import Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, PydanticBaseSettingsSource, SettingsConfigDict
 
 GEMINI_MODEL_ALIASES = {
@@ -32,6 +32,7 @@ class Settings(BaseSettings):
     assumed_round_trip_cost_bps: float = 5.0
     http_timeout_seconds: float = 15.0
     external_live_fallback_enabled: bool = True
+    live_quote_fallback_enabled: bool = True
     quidax_kline_limit: int = 1000
     quidax_kline_period_minutes: int = 120
 
@@ -47,6 +48,12 @@ class Settings(BaseSettings):
     news_max_items: int = 50
     news_max_age_hours: int = 72
     news_fetch_timeout_seconds: float = 10.0
+
+    live_usdtngn_source: str = "qbot"
+    qbot_usdtngn_rate_url: str = "https://qbot-test.qdx.global/api/v1/rates-export/current/USDTNGN"
+    qbot_service_token: str | None = None
+    qbot_cf_access_client_id: str | None = None
+    qbot_cf_access_client_secret: str | None = None
 
     quidax_usdtngn_ticker_url: str = "https://app.quidax.io/api/v1/markets/tickers/usdtngn"
     quidax_btcngn_ticker_url: str = "https://app.quidax.io/api/v1/markets/tickers/btcngn"
@@ -72,6 +79,19 @@ class Settings(BaseSettings):
         stripped = value.strip()
         return stripped or None
 
+    @field_validator(
+        "qbot_service_token",
+        "qbot_cf_access_client_id",
+        "qbot_cf_access_client_secret",
+        mode="before",
+    )
+    @classmethod
+    def blank_secret_to_none(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        stripped = str(value).strip()
+        return stripped or None
+
     @field_validator("gemini_model", mode="before")
     @classmethod
     def normalize_gemini_model(cls, value: str | None) -> str:
@@ -81,6 +101,25 @@ class Settings(BaseSettings):
         if not stripped:
             return "gemini-3-flash-preview"
         return GEMINI_MODEL_ALIASES.get(stripped, stripped)
+
+    @model_validator(mode="after")
+    def repair_project_paths(self) -> "Settings":
+        repo_root = Path(__file__).resolve().parent.parent
+
+        if not self.base_dir.exists():
+            self.base_dir = repo_root
+
+        self.artifacts_dir = self._repair_path(self.artifacts_dir, repo_root / "artifacts")
+        self.data_dir = self._repair_path(self.data_dir, repo_root / "data" / "latest")
+        self.runtime_dir = self._repair_path(self.runtime_dir, repo_root / "runtime")
+        return self
+
+    @staticmethod
+    def _repair_path(configured: Path, fallback: Path) -> Path:
+        # Keep intentional custom paths when their parent exists; only repair dead absolute paths.
+        if configured.exists() or configured.parent.exists():
+            return configured
+        return fallback
 
     @classmethod
     def settings_customise_sources(

@@ -10,7 +10,7 @@ from app.config import get_settings
 from app.services.artifacts import ArtifactLoader, ExportLoader
 from app.services.features import PublicFeatureBuilder
 from app.services.inference import LiveInferenceService
-from app.services.market_data import MarketFetchResult, QuidaxMarketSnapshot, QuidaxTicker
+from app.services.market_data import LiveMarketSnapshot, LiveTicker, MarketFetchResult
 from app.schemas import SourceStatus
 from scripts.refresh_runtime_data import build_runtime_bars
 
@@ -68,27 +68,27 @@ class LiveInferenceTests(unittest.TestCase):
         last_index = base_frame.index.max()
         live_at = (last_index + pd.Timedelta(hours=2)).to_pydatetime()
 
-        snapshot = QuidaxMarketSnapshot(
-            usdtngn=QuidaxTicker(
+        snapshot = LiveMarketSnapshot(
+            usdtngn=LiveTicker(
                 market="usdtngn",
                 at=live_at,
                 buy=1410.0,
                 sell=1418.0,
+                last=1415.0,
                 low=1408.0,
                 high=1420.0,
                 open=1412.0,
-                last=1415.0,
                 vol=1000.0,
             ),
-            btcngn=QuidaxTicker(
+            btcngn=LiveTicker(
                 market="btcngn",
                 at=live_at,
                 buy=99000000.0,
                 sell=99500000.0,
+                last=99400000.0,
                 low=98500000.0,
                 high=100000000.0,
                 open=98900000.0,
-                last=99400000.0,
                 vol=1.2,
             ),
             statuses=[],
@@ -128,7 +128,7 @@ class LiveInferenceTests(unittest.TestCase):
         self.assertEqual(float(runtime.iloc[-1]["btcngn_close"]), 99400000.0)
         self.assertAlmostEqual(float(runtime.iloc[-1]["implied_btcusd_quidax"]), 99400000.0 / 1416.0)
 
-    def test_refresh_exposes_live_last_trade_from_quidax_ticker_last(self) -> None:
+    def test_refresh_exposes_live_last_trade_from_live_quote_source(self) -> None:
         service = LiveInferenceService(self.settings)
         service.export_loader.load_latest = lambda: self.export.copy()
         service.export_loader.latest_export_path = lambda: self.settings.artifacts_dir / "bquxjob_46cfbd3b_19cd830c445.csv"
@@ -159,27 +159,27 @@ class LiveInferenceTests(unittest.TestCase):
         )
 
         live_at = (self.export.index.max() + pd.Timedelta(hours=2)).to_pydatetime()
-        service.quidax_tickers.fetch = lambda: QuidaxMarketSnapshot(
-            usdtngn=QuidaxTicker(
+        service.live_quote_service.fetch = lambda: LiveMarketSnapshot(
+            usdtngn=LiveTicker(
                 market="usdtngn",
                 at=live_at,
                 buy=1406.6,
                 sell=1415.08,
+                last=1415.08,
                 low=1404.21,
                 high=1433.59,
                 open=1412.61,
-                last=1415.08,
                 vol=38200.6633,
             ),
-            btcngn=QuidaxTicker(
+            btcngn=LiveTicker(
                 market="btcngn",
                 at=live_at,
                 buy=98000000.0,
                 sell=99000000.0,
+                last=98800000.0,
                 low=97000000.0,
                 high=100000000.0,
                 open=98500000.0,
-                last=98800000.0,
                 vol=1.1,
             ),
             statuses=[],

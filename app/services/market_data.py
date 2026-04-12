@@ -18,22 +18,24 @@ class MarketFetchResult:
 
 
 @dataclass(frozen=True)
-class QuidaxTicker:
+class LiveTicker:
     market: str
     at: datetime
     buy: float
     sell: float
-    low: float
-    high: float
-    open: float
     last: float
-    vol: float
+    low: float | None = None
+    high: float | None = None
+    open: float | None = None
+    vol: float | None = None
+    provider: str | None = None
+    source: str | None = None
 
 
 @dataclass(frozen=True)
-class QuidaxMarketSnapshot:
-    usdtngn: QuidaxTicker
-    btcngn: QuidaxTicker
+class LiveMarketSnapshot:
+    usdtngn: LiveTicker
+    btcngn: LiveTicker
     statuses: list[SourceStatus]
 
 
@@ -177,24 +179,119 @@ class ExternalDailyMarketDataService:
         output.reset_index().to_csv(path, index=False)
 
 
-class QuidaxTickerService:
+class LiveQuoteService:
     def __init__(self, settings: Settings) -> None:
         self.settings = settings
 
-    def fetch(self) -> QuidaxMarketSnapshot:
+    def fetch(self) -> LiveMarketSnapshot:
         statuses: list[SourceStatus] = []
         with httpx.Client(timeout=self.settings.http_timeout_seconds) as client:
-            usdtngn = self._fetch_one(client, self.settings.quidax_usdtngn_ticker_url, "quidax_usdtngn", statuses)
-            btcngn = self._fetch_one(client, self.settings.quidax_btcngn_ticker_url, "quidax_btcngn", statuses)
-        return QuidaxMarketSnapshot(usdtngn=usdtngn, btcngn=btcngn, statuses=statuses)
+            usdtngn = self._fetch_usdtngn(client, statuses)
+            btcngn = self._fetch_quidax_ticker(
+                client,
+                self.settings.quidax_btcngn_ticker_url,
+                "quidax_btcngn",
+                statuses,
+            )
+        return LiveMarketSnapshot(usdtngn=usdtngn, btcngn=btcngn, statuses=statuses)
 
-    def _fetch_one(
+    def _fetch_usdtngn(self, client: httpx.Client, statuses: list[SourceStatus]) -> LiveTicker:
+        source = self.settings.live_usdtngn_source.strip().lower()
+        if source == "qbot":
+            try:
+                return self._fetch_qbot_rate(client, statuses)
+            except Exception as exc:
+                if not self.settings.live_quote_fallback_enabled:
+                    raise
+                statuses.append(
+                    SourceStatus(
+                        source_id="qbot_usdtngn",
+                        status="degraded",
+                        latest_timestamp=datetime.now(UTC),
+                        message=f"Falling back to Quidax ticker because qbot failed: {exc}",
+                    )
+                )
+        return self._fetch_quidax_ticker(
+            client,
+            self.settings.quidax_usdtngn_ticker_url,
+            "quidax_usdtngn",
+            statuses,
+        )
+
+    def _fetch_qbot_rate(
+        self,
+        client: httpx.Client,
+        statuses: list[SourceStatus],
+    ) -> LiveTicker:
+        missing = [
+            name
+            for name, value in (
+                ("qbot_service_token", self.settings.qbot_service_token),
+                ("qbot_cf_access_client_id", self.settings.qbot_cf_access_client_id),
+                ("qbot_cf_access_client_secret", self.settings.qbot_cf_access_client_secret),
+            )
+            if not value
+        ]
+        if missing:
+            raise RuntimeError(f"Missing qbot credentials: {', '.join(missing)}")
+
+        response = client.get(
+            self.settings.qbot_usdtngn_rate_url,
+            headers={
+                "x-service-token": self.settings.qbot_service_token,
+                "CF-Access-Client-Id": self.settings.qbot_cf_access_client_id,
+                "CF-Access-Client-Secret": self.settings.qbot_cf_access_client_secret,
+            },
+        )
+        response.raise_for_status()
+        payload = response.json()
+
+        if payload.get("status") != "success":
+            raise RuntimeError(f"qbot_usdtngn returned non-success payload: {payload}")
+
+        current = payload["data"]["current"]
+        recent = payload["data"].get("recent", [])
+        recent_mids = [self._to_float(row["midRate"]) for row in recent if row.get("midRate") is not None]
+        at = pd.Timestamp(current["rateAsAt"])
+        if at.tzinfo is None:
+            at = at.tz_localize(UTC)
+        else:
+            at = at.tz_convert(UTC)
+
+        mid_rate = self._to_float(current["midRate"])
+        result = LiveTicker(
+            market="usdtngn",
+            at=at.to_pydatetime(),
+            buy=self._to_float(current["buyRate"]),
+            sell=self._to_float(current["sellRate"]),
+            last=mid_rate,
+            low=min(recent_mids) if recent_mids else mid_rate,
+            high=max(recent_mids) if recent_mids else mid_rate,
+            open=recent_mids[-1] if recent_mids else mid_rate,
+            vol=None,
+            provider=str(current.get("provider") or ""),
+            source=str(current.get("source") or ""),
+        )
+        statuses.append(
+            SourceStatus(
+                source_id="qbot_usdtngn",
+                status="ok",
+                latest_timestamp=result.at,
+                message=(
+                    f"provider={result.provider or 'unknown'} "
+                    f"bid={result.buy} ask={result.sell} mid={result.last}"
+                ),
+            )
+        )
+        return result
+
+    def _fetch_quidax_ticker(
         self,
         client: httpx.Client,
         url: str,
         source_id: str,
         statuses: list[SourceStatus],
-    ) -> QuidaxTicker:
+    ) -> LiveTicker:
         response = client.get(url)
         response.raise_for_status()
         payload = response.json()
@@ -206,24 +303,26 @@ class QuidaxTickerService:
         ticker = data["ticker"]
         at = datetime.fromtimestamp(int(data["at"]), tz=UTC)
 
-        result = QuidaxTicker(
+        result = LiveTicker(
             market=str(data["market"]),
             at=at,
             buy=self._to_float(ticker["buy"]),
             sell=self._to_float(ticker["sell"]),
+            last=self._to_float(ticker["last"]),
             low=self._to_float(ticker["low"]),
             high=self._to_float(ticker["high"]),
             open=self._to_float(ticker["open"]),
-            last=self._to_float(ticker["last"]),
             vol=self._to_float(ticker["vol"]),
+            provider="quidax",
+            source=source_id,
         )
         statuses.append(
-                SourceStatus(
-                    source_id=source_id,
-                    status="ok",
-                    latest_timestamp=at,
-                    message=f"{result.market} bid={result.buy} ask={result.sell} last={result.last}",
-                )
+            SourceStatus(
+                source_id=source_id,
+                status="ok",
+                latest_timestamp=at,
+                message=f"{result.market} bid={result.buy} ask={result.sell} last={result.last}",
+            )
         )
         return result
 

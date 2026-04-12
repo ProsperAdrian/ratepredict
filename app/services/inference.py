@@ -11,7 +11,7 @@ from app.schemas import InferenceSnapshot, MarketBrief, ModelBreakdown, SourceSt
 from app.services.artifacts import ArtifactBundle, ArtifactLoader, ExportLoader
 from app.services.features import PublicFeatureBuilder
 from app.services.gemini_ai import GeminiAIContextEngine as GeminiBriefService
-from app.services.market_data import ExternalDailyMarketDataService, QuidaxMarketSnapshot, QuidaxTickerService
+from app.services.market_data import ExternalDailyMarketDataService, LiveMarketSnapshot, LiveQuoteService
 
 
 class LiveInferenceService:
@@ -20,7 +20,7 @@ class LiveInferenceService:
         self.artifacts = ArtifactLoader(settings).load()
         self.export_loader = ExportLoader(settings)
         self.external_market_data = ExternalDailyMarketDataService(settings)
-        self.quidax_tickers = QuidaxTickerService(settings)
+        self.live_quote_service = LiveQuoteService(settings)
         self.feature_builder = PublicFeatureBuilder()
         self.gemini = GeminiBriefService(settings)
         self._lock = threading.Lock()
@@ -51,7 +51,7 @@ class LiveInferenceService:
         return self.refresh()
 
     def _run_refresh(self) -> InferenceSnapshot:
-        live_quotes = self.quidax_tickers.fetch()
+        live_quotes = self.live_quote_service.fetch()
         latest_path = self.export_loader.latest_export_path()
         export_frame = self.export_loader.load_latest()
         using_runtime_bars = latest_path.name == self.settings.runtime_bars_filename
@@ -195,7 +195,7 @@ class LiveInferenceService:
     def _apply_live_quotes(
         self,
         export_frame: pd.DataFrame,
-        live_quotes: QuidaxMarketSnapshot,
+        live_quotes: LiveMarketSnapshot,
     ) -> tuple[pd.DataFrame, int]:
         frame = export_frame.copy().sort_index()
         latest_export_time = frame.index.max()
@@ -221,13 +221,26 @@ class LiveInferenceService:
 
         target_index = live_bucket if live_bucket in frame.index else frame.index.max()
         current = frame.loc[target_index].copy()
-        current["open"] = live_quotes.usdtngn.open
-        current["high"] = live_quotes.usdtngn.high
-        current["low"] = live_quotes.usdtngn.low
+        if live_quotes.usdtngn.open is not None:
+            current["open"] = live_quotes.usdtngn.open
+        elif target_index > latest_export_time:
+            current["open"] = live_quotes.usdtngn.last
+        if live_quotes.usdtngn.high is not None:
+            current["high"] = live_quotes.usdtngn.high
+        elif target_index > latest_export_time:
+            current["high"] = live_quotes.usdtngn.last
+        if live_quotes.usdtngn.low is not None:
+            current["low"] = live_quotes.usdtngn.low
+        elif target_index > latest_export_time:
+            current["low"] = live_quotes.usdtngn.last
         current["close"] = live_quotes.usdtngn.last
-        current["volume"] = live_quotes.usdtngn.vol
+        if live_quotes.usdtngn.vol is not None:
+            current["volume"] = live_quotes.usdtngn.vol
+        elif target_index > latest_export_time:
+            current["volume"] = 0.0
         current["btcngn_close"] = live_quotes.btcngn.last
-        current["btcngn_volume"] = live_quotes.btcngn.vol
+        if live_quotes.btcngn.vol is not None:
+            current["btcngn_volume"] = live_quotes.btcngn.vol
         if live_quotes.usdtngn.last > 0:
             current["implied_btcusd_quidax"] = live_quotes.btcngn.last / live_quotes.usdtngn.last
         frame.loc[target_index, current.index] = current.values

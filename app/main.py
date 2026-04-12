@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import csv
 import logging
+import os
 import pickle
 import sys
 import threading
@@ -25,7 +26,7 @@ from app.schemas import InferenceSnapshot
 from app.services.artifacts import ArtifactLoader, ExportLoader
 from app.services.gemini_ai import GeminiAIContextEngine
 from app.services.features import PublicFeatureBuilder
-from app.services.market_data import ExternalDailyMarketDataService, QuidaxTickerService
+from app.services.market_data import ExternalDailyMarketDataService, LiveQuoteService
 from app.services.news_aggregator import NewsAggregatorService, format_news_for_prompt, format_news_summary_stats
 
 WAT = timezone(timedelta(hours=1))
@@ -544,12 +545,36 @@ hr { border-color: var(--line) !important; }
 # ===================================================================
 
 SIGNAL_LOG_PATH = PROJECT_ROOT / "app" / "signal_log.csv"
-SETTINGS_STATE_VERSION = 3
+SETTINGS_STATE_VERSION = 4
 SIGNAL_LOG_COLUMNS = [
     "datetime", "signal", "forecast_price", "current_price",
     "predicted_return", "actual_price_2h", "result", "pnl_bps",
     "confidence", "ai_sentiment", "ai_magnitude",
 ]
+
+STREAMLIT_SECRET_ENV_KEYS = (
+    "LIVE_USDTNGN_SOURCE",
+    "QBOT_USDTNGN_RATE_URL",
+    "QBOT_SERVICE_TOKEN",
+    "QBOT_CF_ACCESS_CLIENT_ID",
+    "QBOT_CF_ACCESS_CLIENT_SECRET",
+    "QUIDAX_USDTNGN_TICKER_URL",
+    "QUIDAX_BTCNGN_TICKER_URL",
+    "LIVE_QUOTE_FALLBACK_ENABLED",
+)
+
+
+def sync_streamlit_secrets_to_env() -> None:
+    try:
+        secret_mapping = st.secrets
+    except Exception:
+        return
+
+    for key in STREAMLIT_SECRET_ENV_KEYS:
+        if key in os.environ:
+            continue
+        if key in secret_mapping:
+            os.environ[key] = str(secret_mapping[key])
 
 
 def compute_confidence(
@@ -777,8 +802,8 @@ def _evaluate_pending_outcomes(settings):
 
     # Fetch live price once for all due signals
     try:
-        quidax = QuidaxTickerService(settings)
-        snapshot = quidax.fetch()
+        live_quotes = LiveQuoteService(settings)
+        snapshot = live_quotes.fetch()
         live_price = float(snapshot.usdtngn.last)
     except Exception as e:
         _logger.warning("Could not fetch live price for outcome eval: %s", e)
@@ -847,6 +872,7 @@ def fmt_plain_pct(value: float | None) -> str:
 # ===================================================================
 
 def init_services():
+    sync_streamlit_secrets_to_env()
     env_path = PROJECT_ROOT / ".env"
     env_mtime = env_path.stat().st_mtime if env_path.exists() else None
     should_reload_settings = (
@@ -887,12 +913,12 @@ def init_services():
 
 def run_prediction(settings: Settings, market_notes: str = "") -> dict:
     artifacts = st.session_state.artifacts
-    quidax_tickers = QuidaxTickerService(settings)
+    live_quote_service = LiveQuoteService(settings)
     external_market = ExternalDailyMarketDataService(settings)
     feature_builder = PublicFeatureBuilder()
     export_loader = ExportLoader(settings)
 
-    live_quotes = quidax_tickers.fetch()
+    live_quotes = live_quote_service.fetch()
     export_frame = export_loader.load_latest()
     latest_path = export_loader.latest_export_path()
     using_runtime_bars = latest_path.name == settings.runtime_bars_filename
@@ -1113,13 +1139,26 @@ def _apply_live_quotes(export_frame, live_quotes, settings):
             synthetic_bars = len(missing_index)
     target_index = live_bucket if live_bucket in frame.index else frame.index.max()
     current = frame.loc[target_index].copy()
-    current["open"] = live_quotes.usdtngn.open
-    current["high"] = live_quotes.usdtngn.high
-    current["low"] = live_quotes.usdtngn.low
+    if live_quotes.usdtngn.open is not None:
+        current["open"] = live_quotes.usdtngn.open
+    elif target_index > latest_export_time:
+        current["open"] = live_quotes.usdtngn.last
+    if live_quotes.usdtngn.high is not None:
+        current["high"] = live_quotes.usdtngn.high
+    elif target_index > latest_export_time:
+        current["high"] = live_quotes.usdtngn.last
+    if live_quotes.usdtngn.low is not None:
+        current["low"] = live_quotes.usdtngn.low
+    elif target_index > latest_export_time:
+        current["low"] = live_quotes.usdtngn.last
     current["close"] = live_quotes.usdtngn.last
-    current["volume"] = live_quotes.usdtngn.vol
+    if live_quotes.usdtngn.vol is not None:
+        current["volume"] = live_quotes.usdtngn.vol
+    elif target_index > latest_export_time:
+        current["volume"] = 0.0
     current["btcngn_close"] = live_quotes.btcngn.last
-    current["btcngn_volume"] = live_quotes.btcngn.vol
+    if live_quotes.btcngn.vol is not None:
+        current["btcngn_volume"] = live_quotes.btcngn.vol
     if live_quotes.usdtngn.last > 0:
         current["implied_btcusd_quidax"] = live_quotes.btcngn.last / live_quotes.usdtngn.last
     frame.loc[target_index, current.index] = current.values
@@ -2198,7 +2237,7 @@ def render_methodology():
     st.markdown('<div id="what-is-this" class="method-section">', unsafe_allow_html=True)
     st.markdown("### 1. What Is This?")
     st.markdown("""
-This system predicts the direction of the USDT/NGN exchange rate on Quidax every 2 hours. It tells the OTC team whether
+This system predicts the direction of the USDT/NGN exchange rate on the desk's trading anchor every 2 hours. It tells the OTC team whether
 the rate is likely to go **up**, go **down**, or **stay flat** over the next 2 hours. The goal is to help the team
 position inventory ahead of moves and improve trading profitability.
 
@@ -2410,11 +2449,15 @@ The model has predictive power only at the 2-hour horizon. Beyond that, it perfo
     st.markdown('<div id="live-system" class="method-section">', unsafe_allow_html=True)
     st.markdown("### 6. How the Live System Works")
 
-    st.markdown("#### Step 1: Fetch Live Quidax Prices")
+    st.markdown("#### Step 1: Fetch Live Desk Prices")
     st.markdown("""
-The system calls two Quidax API endpoints (no API key required) for USDT/NGN and BTC/NGN tickers. Each returns the
-current bid, ask, last traded price, 24-hour high/low/open, and volume. The system uses the \u2018last\u2019 field as the
-current price (this matches the \u2018close\u2019 field the model was trained on).
+The system fetches the live USDT/NGN desk quote from the protected qbot rates-export endpoint, which currently returns
+the Bybit-backed desk quote (`buyRate`, `sellRate`, and `midRate`). The dashboard uses `midRate` as the current live
+rate, with `buyRate` and `sellRate` shown as bid/ask.
+
+BTC/NGN still comes from the Quidax public ticker because the runtime feature set needs a live BTC/NGN reference. If
+the protected USDT/NGN endpoint is unavailable and fallback is enabled, the app temporarily falls back to the Quidax
+USDT/NGN ticker on the server side.
 """)
 
     st.markdown("#### Step 2: Fetch External Market Data")

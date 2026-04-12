@@ -30,7 +30,23 @@ It contains two layers:
 - Cross-venue and macro series remain exogenous features, not target components.
 - Economic continuation gate: `+15 bps` monthly incremental net alpha versus passive spread-capture baseline.
 - Included feature families must justify themselves in ablations; any family that does not improve signal quality or economics should be removed.
-- Live `usdtngn` and `btcngn` quotes are fetched directly from the public ticker endpoints.
+- Live `usdtngn` is fetched from the protected qbot rates-export endpoint (provider currently Bybit), while live `btcngn` still comes from the Quidax public ticker endpoint.
+
+## Live Quote Setup
+
+Set these environment variables on the server that runs the Streamlit app:
+
+```bash
+LIVE_USDTNGN_SOURCE=qbot
+QBOT_USDTNGN_RATE_URL=https://qbot-test.qdx.global/api/v1/rates-export/current/USDTNGN
+QBOT_SERVICE_TOKEN=...
+QBOT_CF_ACCESS_CLIENT_ID=...
+QBOT_CF_ACCESS_CLIENT_SECRET=...
+```
+
+The browser never calls qbot directly. Streamlit makes the HTTP request on the server side, so other users can open the app normally without seeing or supplying the Cloudflare credentials.
+
+If you deploy on Streamlit Community Cloud, add the same keys in the app secrets panel; `app/main.py` now mirrors those `st.secrets` values into the backend environment before settings load.
 
 ## Verification
 
