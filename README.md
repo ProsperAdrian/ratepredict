@@ -63,6 +63,36 @@ If direct upstream fetches are blocked from Streamlit Cloud, set `LIVE_USDTNGN_P
 }
 ```
 
+### Deploying The Relay
+
+This repo now includes a tiny proxy service in [`proxy_server.py`](./proxy_server.py). You can deploy it separately on Render, Railway, Fly, or any small Python host.
+
+Run it with:
+
+```bash
+pip install -r proxy-requirements.txt
+uvicorn proxy_server:app --host 0.0.0.0 --port 8000
+```
+
+Set these environment variables on the proxy host:
+
+```bash
+QBOT_USDTNGN_RATE_URL=https://qbot-test.qdx.global/api/v1/rates-export/current/USDTNGN
+QBOT_SERVICE_TOKEN=...
+QBOT_CF_ACCESS_CLIENT_ID=...
+QBOT_CF_ACCESS_CLIENT_SECRET=...
+LIVE_USDTNGN_PROXY_TOKEN=your-random-secret
+```
+
+Then set these in Streamlit secrets:
+
+```toml
+LIVE_USDTNGN_PROXY_URL = "https://your-proxy-domain/usdtngn"
+LIVE_USDTNGN_PROXY_TOKEN = "your-random-secret"
+```
+
+When `LIVE_USDTNGN_PROXY_URL` is present, the Streamlit app stops calling qbot directly and uses the relay instead.
+
 ## Verification
 
 Run:
