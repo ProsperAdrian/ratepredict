@@ -4,8 +4,8 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 from decimal import Decimal
 
-import httpx
 import pandas as pd
+from curl_cffi import requests as curl_requests
 
 from app.config import Settings
 from app.schemas import SourceStatus
@@ -185,25 +185,22 @@ class LiveQuoteService:
 
     def fetch(self) -> LiveMarketSnapshot:
         statuses: list[SourceStatus] = []
-        with httpx.Client(timeout=self.settings.http_timeout_seconds) as client:
-            usdtngn = self._fetch_usdtngn(client, statuses)
-            btcngn = self._fetch_quidax_ticker(
-                client,
-                self.settings.quidax_btcngn_ticker_url,
-                "quidax_btcngn",
-                statuses,
-            )
+        usdtngn = self._fetch_usdtngn(statuses)
+        btcngn = self._fetch_quidax_ticker(
+            self.settings.quidax_btcngn_ticker_url,
+            "quidax_btcngn",
+            statuses,
+        )
         return LiveMarketSnapshot(usdtngn=usdtngn, btcngn=btcngn, statuses=statuses)
 
-    def _fetch_usdtngn(self, client: httpx.Client, statuses: list[SourceStatus]) -> LiveTicker:
+    def _fetch_usdtngn(self, statuses: list[SourceStatus]) -> LiveTicker:
         source = self.settings.live_usdtngn_source.strip().lower()
         if source != "qbot":
             raise RuntimeError(f"Unsupported live_usdtngn_source: {self.settings.live_usdtngn_source}")
-        return self._fetch_qbot_rate(client, statuses)
+        return self._fetch_qbot_rate(statuses)
 
     def _fetch_qbot_rate(
         self,
-        client: httpx.Client,
         statuses: list[SourceStatus],
     ) -> LiveTicker:
         missing = [
@@ -228,14 +225,13 @@ class LiveQuoteService:
             "User-Agent": "curl/8.7.1",
         }
 
-        response = client.get(
+        response = self._request(
             self.settings.qbot_usdtngn_rate_url,
             headers=headers,
-            follow_redirects=True,
         )
         try:
             response.raise_for_status()
-        except httpx.HTTPStatusError as exc:
+        except Exception as exc:
             body_snippet = " ".join(response.text.strip().split())[:280]
             if response.status_code == 403:
                 raise RuntimeError(
@@ -290,13 +286,25 @@ class LiveQuoteService:
 
     def _fetch_quidax_ticker(
         self,
-        client: httpx.Client,
         url: str,
         source_id: str,
         statuses: list[SourceStatus],
     ) -> LiveTicker:
-        response = client.get(url)
-        response.raise_for_status()
+        response = self._request(
+            url,
+            headers={
+                "Accept": "application/json",
+                "User-Agent": "curl/8.7.1",
+            },
+        )
+        try:
+            response.raise_for_status()
+        except Exception as exc:
+            body_snippet = " ".join(response.text.strip().split())[:280]
+            raise RuntimeError(
+                f"{source_id} request failed with HTTP {response.status_code}. "
+                f"Response snippet: {body_snippet or '[empty body]'}"
+            ) from exc
         payload = response.json()
 
         if payload.get("status") != "success":
@@ -332,6 +340,15 @@ class LiveQuoteService:
     def _to_float(self, value: str | float | int) -> float:
         return float(Decimal(str(value)))
 
+    def _request(self, url: str, headers: dict[str, str]) -> curl_requests.Response:
+        return curl_requests.get(
+            url,
+            headers=headers,
+            timeout=self.settings.http_timeout_seconds,
+            impersonate="chrome",
+            allow_redirects=True,
+        )
+
 
 class QuidaxKlineService:
     def __init__(self, settings: Settings) -> None:
@@ -342,10 +359,18 @@ class QuidaxKlineService:
         capped_limit = limit or self.settings.quidax_kline_limit
         url = f"https://app.quidax.io/api/v1/markets/{market}/k?period={period}&limit={capped_limit}"
 
-        with httpx.Client(timeout=self.settings.http_timeout_seconds) as client:
-            response = client.get(url)
-            response.raise_for_status()
-            payload = response.json()
+        response = curl_requests.get(
+            url,
+            headers={
+                "Accept": "application/json",
+                "User-Agent": "curl/8.7.1",
+            },
+            timeout=self.settings.http_timeout_seconds,
+            impersonate="chrome",
+            allow_redirects=True,
+        )
+        response.raise_for_status()
+        payload = response.json()
 
         if payload.get("status") != "success":
             raise RuntimeError(f"Quidax k-line call failed for {market}: {payload}")
