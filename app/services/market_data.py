@@ -3,9 +3,10 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from decimal import Decimal
+import json
+import subprocess
 
 import pandas as pd
-from curl_cffi import requests as curl_requests
 
 from app.config import Settings
 from app.schemas import SourceStatus
@@ -225,25 +226,10 @@ class LiveQuoteService:
             "User-Agent": "curl/8.7.1",
         }
 
-        response = self._request(
+        payload = self._request_json(
             self.settings.qbot_usdtngn_rate_url,
             headers=headers,
         )
-        try:
-            response.raise_for_status()
-        except Exception as exc:
-            body_snippet = " ".join(response.text.strip().split())[:280]
-            if response.status_code == 403:
-                raise RuntimeError(
-                    "qbot returned 403 Forbidden. Cloudflare/qbot rejected the Streamlit backend "
-                    "request. This is usually an upstream Access policy, service token, or IP/ASN "
-                    f"allowlist issue, not a parsing bug. Response snippet: {body_snippet or '[empty body]'}"
-                ) from exc
-            raise RuntimeError(
-                f"qbot request failed with HTTP {response.status_code}. "
-                f"Response snippet: {body_snippet or '[empty body]'}"
-            ) from exc
-        payload = response.json()
 
         if payload.get("status") != "success":
             raise RuntimeError(f"qbot_usdtngn returned non-success payload: {payload}")
@@ -290,22 +276,13 @@ class LiveQuoteService:
         source_id: str,
         statuses: list[SourceStatus],
     ) -> LiveTicker:
-        response = self._request(
+        payload = self._request_json(
             url,
             headers={
                 "Accept": "application/json",
                 "User-Agent": "curl/8.7.1",
             },
         )
-        try:
-            response.raise_for_status()
-        except Exception as exc:
-            body_snippet = " ".join(response.text.strip().split())[:280]
-            raise RuntimeError(
-                f"{source_id} request failed with HTTP {response.status_code}. "
-                f"Response snippet: {body_snippet or '[empty body]'}"
-            ) from exc
-        payload = response.json()
 
         if payload.get("status") != "success":
             raise RuntimeError(f"{source_id} returned non-success payload: {payload}")
@@ -340,14 +317,50 @@ class LiveQuoteService:
     def _to_float(self, value: str | float | int) -> float:
         return float(Decimal(str(value)))
 
-    def _request(self, url: str, headers: dict[str, str]) -> curl_requests.Response:
-        return curl_requests.get(
-            url,
-            headers=headers,
-            timeout=self.settings.http_timeout_seconds,
-            impersonate="chrome",
-            allow_redirects=True,
+    def _request_json(self, url: str, headers: dict[str, str]) -> dict:
+        command = [
+            "curl",
+            "--silent",
+            "--show-error",
+            "--location",
+            "--max-time",
+            str(int(max(self.settings.http_timeout_seconds, 1))),
+            "--write-out",
+            "\n%{http_code}",
+        ]
+        for name, value in headers.items():
+            command.extend(["-H", f"{name}: {value}"])
+        command.append(url)
+
+        result = subprocess.run(
+            command,
+            capture_output=True,
+            text=True,
+            check=False,
         )
+        if result.returncode != 0:
+            raise RuntimeError(f"curl failed for {url}: {result.stderr.strip() or result.stdout.strip()}")
+
+        body, _, status_text = result.stdout.rpartition("\n")
+        status_code = int(status_text.strip() or "0")
+        body_snippet = " ".join(body.strip().split())[:280]
+
+        if status_code == 403:
+            raise RuntimeError(
+                "Upstream returned 403 Forbidden to the server-side curl request. "
+                f"Response snippet: {body_snippet or '[empty body]'}"
+            )
+        if status_code >= 400:
+            raise RuntimeError(
+                f"Request failed with HTTP {status_code}. Response snippet: {body_snippet or '[empty body]'}"
+            )
+
+        try:
+            return json.loads(body)
+        except json.JSONDecodeError as exc:
+            raise RuntimeError(
+                f"Non-JSON response returned from {url}. Response snippet: {body_snippet or '[empty body]'}"
+            ) from exc
 
 
 class QuidaxKlineService:
@@ -359,18 +372,13 @@ class QuidaxKlineService:
         capped_limit = limit or self.settings.quidax_kline_limit
         url = f"https://app.quidax.io/api/v1/markets/{market}/k?period={period}&limit={capped_limit}"
 
-        response = curl_requests.get(
+        payload = LiveQuoteService(self.settings)._request_json(
             url,
             headers={
                 "Accept": "application/json",
                 "User-Agent": "curl/8.7.1",
             },
-            timeout=self.settings.http_timeout_seconds,
-            impersonate="chrome",
-            allow_redirects=True,
         )
-        response.raise_for_status()
-        payload = response.json()
 
         if payload.get("status") != "success":
             raise RuntimeError(f"Quidax k-line call failed for {market}: {payload}")
