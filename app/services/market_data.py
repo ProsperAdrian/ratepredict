@@ -218,15 +218,35 @@ class LiveQuoteService:
         if missing:
             raise RuntimeError(f"Missing qbot credentials: {', '.join(missing)}")
 
+        headers = {
+            "x-service-token": self.settings.qbot_service_token,
+            "CF-Access-Client-Id": self.settings.qbot_cf_access_client_id,
+            "CF-Access-Client-Secret": self.settings.qbot_cf_access_client_secret,
+            "Accept": "application/json",
+            # Match the working curl call more closely in case upstream policy is
+            # sensitive to non-browser client fingerprints.
+            "User-Agent": "curl/8.7.1",
+        }
+
         response = client.get(
             self.settings.qbot_usdtngn_rate_url,
-            headers={
-                "x-service-token": self.settings.qbot_service_token,
-                "CF-Access-Client-Id": self.settings.qbot_cf_access_client_id,
-                "CF-Access-Client-Secret": self.settings.qbot_cf_access_client_secret,
-            },
+            headers=headers,
+            follow_redirects=True,
         )
-        response.raise_for_status()
+        try:
+            response.raise_for_status()
+        except httpx.HTTPStatusError as exc:
+            body_snippet = " ".join(response.text.strip().split())[:280]
+            if response.status_code == 403:
+                raise RuntimeError(
+                    "qbot returned 403 Forbidden. Cloudflare/qbot rejected the Streamlit backend "
+                    "request. This is usually an upstream Access policy, service token, or IP/ASN "
+                    f"allowlist issue, not a parsing bug. Response snippet: {body_snippet or '[empty body]'}"
+                ) from exc
+            raise RuntimeError(
+                f"qbot request failed with HTTP {response.status_code}. "
+                f"Response snippet: {body_snippet or '[empty body]'}"
+            ) from exc
         payload = response.json()
 
         if payload.get("status") != "success":
