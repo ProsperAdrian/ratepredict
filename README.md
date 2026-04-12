@@ -67,6 +67,19 @@ If direct upstream fetches are blocked from Streamlit Cloud, set `LIVE_USDTNGN_P
 
 This repo now includes a tiny proxy service in [`proxy_server.py`](./proxy_server.py). You can deploy it separately on Render, Railway, Fly, or any small Python host.
 
+For Render, this repo now includes [`render.yaml`](./render.yaml). The easiest path is:
+
+1. Create a new Web Service on Render from this GitHub repo
+2. Let Render detect `render.yaml`
+3. Fill in the secret env vars:
+   - `QBOT_SERVICE_TOKEN`
+   - `QBOT_CF_ACCESS_CLIENT_ID`
+   - `QBOT_CF_ACCESS_CLIENT_SECRET`
+   - `LIVE_USDTNGN_PROXY_TOKEN`
+4. Deploy
+5. Copy the final service URL and append `/usdtngn`
+6. Put that full URL into Streamlit as `LIVE_USDTNGN_PROXY_URL`
+
 Run it with:
 
 ```bash
