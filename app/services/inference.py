@@ -11,7 +11,14 @@ from app.schemas import InferenceSnapshot, MarketBrief, ModelBreakdown, SourceSt
 from app.services.artifacts import ArtifactBundle, ArtifactLoader, ExportLoader
 from app.services.features import PublicFeatureBuilder
 from app.services.gemini_ai import GeminiAIContextEngine as GeminiBriefService
-from app.services.market_data import ExternalDailyMarketDataService, LiveMarketSnapshot, LiveQuoteService
+try:
+    from app.services.market_data import ExternalDailyMarketDataService, LiveMarketSnapshot, LiveQuoteService
+except ImportError:
+    from app.services.market_data import (
+        ExternalDailyMarketDataService,
+        QuidaxMarketSnapshot as LiveMarketSnapshot,
+        QuidaxTickerService as LiveQuoteService,
+    )
 
 
 class LiveInferenceService:

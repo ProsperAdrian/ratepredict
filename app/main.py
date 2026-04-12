@@ -26,7 +26,12 @@ from app.schemas import InferenceSnapshot
 from app.services.artifacts import ArtifactLoader, ExportLoader
 from app.services.gemini_ai import GeminiAIContextEngine
 from app.services.features import PublicFeatureBuilder
-from app.services.market_data import ExternalDailyMarketDataService, LiveQuoteService
+try:
+    from app.services.market_data import ExternalDailyMarketDataService, LiveQuoteService
+except ImportError:
+    # Compatibility path for environments that briefly load older market_data.py
+    # during deployment rollouts.
+    from app.services.market_data import ExternalDailyMarketDataService, QuidaxTickerService as LiveQuoteService
 from app.services.news_aggregator import NewsAggregatorService, format_news_for_prompt, format_news_summary_stats
 
 WAT = timezone(timedelta(hours=1))

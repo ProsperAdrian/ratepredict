@@ -330,6 +330,13 @@ class LiveQuoteService:
         return float(Decimal(str(value)))
 
 
+# Backward-compatible aliases for modules or deployments that still reference the
+# old Quidax naming while the new live quote source rolls out.
+QuidaxTicker = LiveTicker
+QuidaxMarketSnapshot = LiveMarketSnapshot
+QuidaxTickerService = LiveQuoteService
+
+
 class QuidaxKlineService:
     def __init__(self, settings: Settings) -> None:
         self.settings = settings
