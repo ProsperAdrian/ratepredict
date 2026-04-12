@@ -196,9 +196,39 @@ class LiveQuoteService:
 
     def _fetch_usdtngn(self, statuses: list[SourceStatus]) -> LiveTicker:
         source = self.settings.live_usdtngn_source.strip().lower()
+        if self.settings.live_usdtngn_proxy_url:
+            return self._fetch_proxy_rate(statuses)
+        if source == "proxy":
+            raise RuntimeError("LIVE_USDTNGN_SOURCE is 'proxy' but LIVE_USDTNGN_PROXY_URL is not configured")
         if source != "qbot":
             raise RuntimeError(f"Unsupported live_usdtngn_source: {self.settings.live_usdtngn_source}")
         return self._fetch_qbot_rate(statuses)
+
+    def _fetch_proxy_rate(self, statuses: list[SourceStatus]) -> LiveTicker:
+        headers = {
+            "Accept": "application/json",
+            "User-Agent": "curl/8.7.1",
+        }
+        if self.settings.live_usdtngn_proxy_token:
+            headers["Authorization"] = f"Bearer {self.settings.live_usdtngn_proxy_token}"
+
+        payload = self._request_json(
+            str(self.settings.live_usdtngn_proxy_url),
+            headers=headers,
+        )
+        result = self._ticker_from_payload(payload, fallback_source_id="proxy_usdtngn")
+        statuses.append(
+            SourceStatus(
+                source_id="proxy_usdtngn",
+                status="ok",
+                latest_timestamp=result.at,
+                message=(
+                    f"provider={result.provider or 'unknown'} "
+                    f"bid={result.buy} ask={result.sell} mid={result.last}"
+                ),
+            )
+        )
+        return result
 
     def _fetch_qbot_rate(
         self,
@@ -231,32 +261,7 @@ class LiveQuoteService:
             headers=headers,
         )
 
-        if payload.get("status") != "success":
-            raise RuntimeError(f"qbot_usdtngn returned non-success payload: {payload}")
-
-        current = payload["data"]["current"]
-        recent = payload["data"].get("recent", [])
-        recent_mids = [self._to_float(row["midRate"]) for row in recent if row.get("midRate") is not None]
-        at = pd.Timestamp(current["rateAsAt"])
-        if at.tzinfo is None:
-            at = at.tz_localize(UTC)
-        else:
-            at = at.tz_convert(UTC)
-
-        mid_rate = self._to_float(current["midRate"])
-        result = LiveTicker(
-            market="usdtngn",
-            at=at.to_pydatetime(),
-            buy=self._to_float(current["buyRate"]),
-            sell=self._to_float(current["sellRate"]),
-            last=mid_rate,
-            low=min(recent_mids) if recent_mids else mid_rate,
-            high=max(recent_mids) if recent_mids else mid_rate,
-            open=recent_mids[-1] if recent_mids else mid_rate,
-            vol=None,
-            provider=str(current.get("provider") or ""),
-            source=str(current.get("source") or ""),
-        )
+        result = self._ticker_from_payload(payload, fallback_source_id="qbot_usdtngn")
         statuses.append(
             SourceStatus(
                 source_id="qbot_usdtngn",
@@ -269,6 +274,64 @@ class LiveQuoteService:
             )
         )
         return result
+
+    def _ticker_from_payload(self, payload: dict, *, fallback_source_id: str) -> LiveTicker:
+        if payload.get("status") == "success" and isinstance(payload.get("data"), dict):
+            data = payload["data"]
+            current = data.get("current")
+            if isinstance(current, dict):
+                recent = data.get("recent", [])
+                recent_mids = [self._to_float(row["midRate"]) for row in recent if row.get("midRate") is not None]
+                at = pd.Timestamp(current["rateAsAt"])
+                if at.tzinfo is None:
+                    at = at.tz_localize(UTC)
+                else:
+                    at = at.tz_convert(UTC)
+
+                mid_rate = self._to_float(current["midRate"])
+                return LiveTicker(
+                    market="usdtngn",
+                    at=at.to_pydatetime(),
+                    buy=self._to_float(current["buyRate"]),
+                    sell=self._to_float(current["sellRate"]),
+                    last=mid_rate,
+                    low=min(recent_mids) if recent_mids else mid_rate,
+                    high=max(recent_mids) if recent_mids else mid_rate,
+                    open=recent_mids[-1] if recent_mids else mid_rate,
+                    vol=None,
+                    provider=str(current.get("provider") or ""),
+                    source=str(current.get("source") or fallback_source_id),
+                )
+
+        at_raw = payload.get("rateAsAt") or payload.get("timestamp") or payload.get("at")
+        if at_raw is None:
+            raise RuntimeError(f"Unsupported proxy/qbot payload shape: {payload}")
+        at = pd.Timestamp(at_raw)
+        if at.tzinfo is None:
+            at = at.tz_localize(UTC)
+        else:
+            at = at.tz_convert(UTC)
+
+        mid_raw = payload.get("midRate", payload.get("mid"))
+        buy_raw = payload.get("buyRate", payload.get("buy"))
+        sell_raw = payload.get("sellRate", payload.get("sell"))
+        if mid_raw is None or buy_raw is None or sell_raw is None:
+            raise RuntimeError(f"Unsupported proxy/qbot payload shape: {payload}")
+
+        mid_rate = self._to_float(mid_raw)
+        return LiveTicker(
+            market="usdtngn",
+            at=at.to_pydatetime(),
+            buy=self._to_float(buy_raw),
+            sell=self._to_float(sell_raw),
+            last=mid_rate,
+            low=mid_rate,
+            high=mid_rate,
+            open=mid_rate,
+            vol=None,
+            provider=str(payload.get("provider") or ""),
+            source=str(payload.get("source") or fallback_source_id),
+        )
 
     def _fetch_quidax_ticker(
         self,

@@ -38,6 +38,8 @@ Set these environment variables on the server that runs the Streamlit app:
 
 ```bash
 LIVE_USDTNGN_SOURCE=qbot
+LIVE_USDTNGN_PROXY_URL=
+LIVE_USDTNGN_PROXY_TOKEN=
 QBOT_USDTNGN_RATE_URL=https://qbot-test.qdx.global/api/v1/rates-export/current/USDTNGN
 QBOT_SERVICE_TOKEN=...
 QBOT_CF_ACCESS_CLIENT_ID=...
@@ -47,6 +49,19 @@ QBOT_CF_ACCESS_CLIENT_SECRET=...
 The browser never calls qbot directly. Streamlit makes the HTTP request on the server side, so other users can open the app normally without seeing or supplying the Cloudflare credentials.
 
 If you deploy on Streamlit Community Cloud, add the same keys in the app secrets panel; `app/main.py` now mirrors those `st.secrets` values into the backend environment before settings load.
+
+If direct upstream fetches are blocked from Streamlit Cloud, set `LIVE_USDTNGN_PROXY_URL` to a relay endpoint you control. The app will use that proxy in preference to direct qbot access. The proxy can either return the original qbot JSON shape or a simple normalized payload like:
+
+```json
+{
+  "buyRate": 1389.64,
+  "sellRate": 1388.718,
+  "midRate": 1389.179,
+  "rateAsAt": "2026-04-12T15:11:24.156Z",
+  "provider": "bybit",
+  "source": "proxy"
+}
+```
 
 ## Verification
 
