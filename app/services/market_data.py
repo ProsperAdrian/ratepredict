@@ -197,26 +197,9 @@ class LiveQuoteService:
 
     def _fetch_usdtngn(self, client: httpx.Client, statuses: list[SourceStatus]) -> LiveTicker:
         source = self.settings.live_usdtngn_source.strip().lower()
-        if source == "qbot":
-            try:
-                return self._fetch_qbot_rate(client, statuses)
-            except Exception as exc:
-                if not self.settings.live_quote_fallback_enabled:
-                    raise
-                statuses.append(
-                    SourceStatus(
-                        source_id="qbot_usdtngn",
-                        status="degraded",
-                        latest_timestamp=datetime.now(UTC),
-                        message=f"Falling back to Quidax ticker because qbot failed: {exc}",
-                    )
-                )
-        return self._fetch_quidax_ticker(
-            client,
-            self.settings.quidax_usdtngn_ticker_url,
-            "quidax_usdtngn",
-            statuses,
-        )
+        if source != "qbot":
+            raise RuntimeError(f"Unsupported live_usdtngn_source: {self.settings.live_usdtngn_source}")
+        return self._fetch_qbot_rate(client, statuses)
 
     def _fetch_qbot_rate(
         self,
@@ -328,13 +311,6 @@ class LiveQuoteService:
 
     def _to_float(self, value: str | float | int) -> float:
         return float(Decimal(str(value)))
-
-
-# Backward-compatible aliases for modules or deployments that still reference the
-# old Quidax naming while the new live quote source rolls out.
-QuidaxTicker = LiveTicker
-QuidaxMarketSnapshot = LiveMarketSnapshot
-QuidaxTickerService = LiveQuoteService
 
 
 class QuidaxKlineService:

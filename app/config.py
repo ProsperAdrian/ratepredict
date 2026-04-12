@@ -32,7 +32,6 @@ class Settings(BaseSettings):
     assumed_round_trip_cost_bps: float = 5.0
     http_timeout_seconds: float = 15.0
     external_live_fallback_enabled: bool = True
-    live_quote_fallback_enabled: bool = True
     quidax_kline_limit: int = 1000
     quidax_kline_period_minutes: int = 120
 
@@ -55,7 +54,6 @@ class Settings(BaseSettings):
     qbot_cf_access_client_id: str | None = None
     qbot_cf_access_client_secret: str | None = None
 
-    quidax_usdtngn_ticker_url: str = "https://app.quidax.io/api/v1/markets/tickers/usdtngn"
     quidax_btcngn_ticker_url: str = "https://app.quidax.io/api/v1/markets/tickers/btcngn"
 
     yahoo_tickers: dict[str, str] = Field(
