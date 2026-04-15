@@ -289,12 +289,14 @@ class LiveQuoteService:
                     at = at.tz_convert(UTC)
 
                 mid_rate = self._to_float(current["midRate"])
+                # Use desk ask/sell as the displayed current price.
+                current_price = self._to_float(current.get("sellRate", current["midRate"]))
                 return LiveTicker(
                     market="usdtngn",
                     at=at.to_pydatetime(),
                     buy=self._to_float(current["buyRate"]),
-                    sell=self._to_float(current["sellRate"]),
-                    last=mid_rate,
+                    sell=self._to_float(current.get("sellRate", current["midRate"])),
+                    last=current_price,
                     low=min(recent_mids) if recent_mids else mid_rate,
                     high=max(recent_mids) if recent_mids else mid_rate,
                     open=recent_mids[-1] if recent_mids else mid_rate,
@@ -315,16 +317,18 @@ class LiveQuoteService:
         mid_raw = payload.get("midRate", payload.get("mid"))
         buy_raw = payload.get("buyRate", payload.get("buy"))
         sell_raw = payload.get("sellRate", payload.get("sell"))
-        if mid_raw is None or buy_raw is None or sell_raw is None:
+        if mid_raw is None or buy_raw is None:
             raise RuntimeError(f"Unsupported proxy/qbot payload shape: {payload}")
 
         mid_rate = self._to_float(mid_raw)
+        sell_value = sell_raw if sell_raw is not None else mid_raw
+        current_price = self._to_float(sell_value)
         return LiveTicker(
             market="usdtngn",
             at=at.to_pydatetime(),
             buy=self._to_float(buy_raw),
-            sell=self._to_float(sell_raw),
-            last=mid_rate,
+            sell=self._to_float(sell_value),
+            last=current_price,
             low=mid_rate,
             high=mid_rate,
             open=mid_rate,

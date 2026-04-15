@@ -2452,7 +2452,7 @@ The model has predictive power only at the 2-hour horizon. Beyond that, it perfo
     st.markdown("#### Step 1: Fetch Live Desk Prices")
     st.markdown("""
 The system fetches the live USDT/NGN desk quote from the protected qbot rates-export endpoint, which currently returns
-the Bybit-backed desk quote (`buyRate`, `sellRate`, and `midRate`). The dashboard uses `midRate` as the current live
+the Bybit-backed desk quote (`buyRate`, `sellRate`, and `midRate`). The dashboard uses `sellRate` as the current live
 rate, with `buyRate` and `sellRate` shown as bid/ask.
 
 BTC/NGN still comes from the Quidax public ticker because the runtime feature set needs a live BTC/NGN reference. If
