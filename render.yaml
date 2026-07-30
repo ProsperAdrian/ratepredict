@@ -1,0 +1,28 @@
+services:
+  - type: web
+    name: ratepredict
+    runtime: python
+    plan: starter
+    buildCommand: pip install --upgrade pip && pip install -r requirements.txt
+    startCommand: >-
+      streamlit run app/main.py
+      --server.port=$PORT
+      --server.address=0.0.0.0
+      --server.headless=true
+      --browser.gatherUsageStats=false
+    healthCheckPath: /
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.11.9"
+      - key: QBOT_USDTNGN_RATE_URL
+        value: https://qbot-test.qdx.global/api/v1/rates-export/current/USDTNGN
+      - key: QUIDAX_BTCNGN_TICKER_URL
+        value: https://app.quidax.io/api/v1/markets/tickers/btcngn
+      - key: QBOT_SERVICE_TOKEN
+        sync: false
+      - key: QBOT_CF_ACCESS_CLIENT_ID
+        sync: false
+      - key: QBOT_CF_ACCESS_CLIENT_SECRET
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false

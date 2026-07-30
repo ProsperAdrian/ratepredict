@@ -45,7 +45,25 @@ QBOT_CF_ACCESS_CLIENT_SECRET=...
 
 The browser never calls qbot directly. Streamlit makes the HTTP request on the server side with the service token and Cloudflare Access credentials, so other users can open the app normally without seeing or supplying those secrets.
 
-If you deploy on Streamlit Community Cloud, add the same keys in the app secrets panel; `app/main.py` mirrors those `st.secrets` values into the backend environment before settings load.
+### Important: Streamlit Community Cloud
+
+Streamlit Community Cloud egress is currently blocked by Cloudflare WAF in front of `qbot-test.qdx.global` (403 HTML), even when Access credentials are valid. That is why local curl works and Community Cloud fails.
+
+Deploy the app on a host whose egress can already reach qbot (your laptop, company infra, or Render). This is still a direct call to the original URL + tokens — not a rates proxy.
+
+### Deploy on Render (recommended alternative to Community Cloud)
+
+This repo includes [`render.yaml`](./render.yaml).
+
+1. Create a Web Service on Render from this GitHub repo
+2. Fill in secret env vars: `QBOT_SERVICE_TOKEN`, `QBOT_CF_ACCESS_CLIENT_ID`, `QBOT_CF_ACCESS_CLIENT_SECRET`, `GEMINI_API_KEY`
+3. Deploy and open the Render URL
+
+Or run locally (guaranteed if your laptop curl works):
+
+```bash
+streamlit run app/main.py
+```
 
 ## Verification
 
@@ -54,5 +72,5 @@ Run:
 ```bash
 . .venv/bin/activate
 python -m unittest discover -s tests
-uvicorn app.main:app --reload
+streamlit run app/main.py
 ```
