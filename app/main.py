@@ -545,7 +545,7 @@ hr { border-color: var(--line) !important; }
 # ===================================================================
 
 SIGNAL_LOG_PATH = PROJECT_ROOT / "app" / "signal_log.csv"
-SETTINGS_STATE_VERSION = 4
+SETTINGS_STATE_VERSION = 5
 SIGNAL_LOG_COLUMNS = [
     "datetime", "signal", "forecast_price", "current_price",
     "predicted_return", "actual_price_2h", "result", "pnl_bps",
@@ -567,11 +567,10 @@ def sync_streamlit_secrets_to_env() -> None:
     except Exception:
         return
 
+    # Streamlit secrets must win over any pre-set empty/stale env vars on Cloud.
     for key in STREAMLIT_SECRET_ENV_KEYS:
-        if key in os.environ:
-            continue
         if key in secret_mapping:
-            os.environ[key] = str(secret_mapping[key])
+            os.environ[key] = str(secret_mapping[key]).strip()
 
 
 def compute_confidence(
