@@ -34,77 +34,18 @@ It contains two layers:
 
 ## Live Quote Setup
 
-Set these environment variables on the server that runs the Streamlit app:
-
-```bash
-LIVE_USDTNGN_SOURCE=qbot
-LIVE_USDTNGN_PROXY_URL=
-LIVE_USDTNGN_PROXY_TOKEN=
-QBOT_USDTNGN_RATE_URL=https://qbot-test.qdx.global/api/v1/rates-export/current/USDTNGN
-QBOT_SERVICE_TOKEN=...
-QBOT_CF_ACCESS_CLIENT_ID=...
-QBOT_CF_ACCESS_CLIENT_SECRET=...
-```
-
-The browser never calls qbot directly. Streamlit makes the HTTP request on the server side, so other users can open the app normally without seeing or supplying the Cloudflare credentials.
-
-If you deploy on Streamlit Community Cloud, add the same keys in the app secrets panel; `app/main.py` now mirrors those `st.secrets` values into the backend environment before settings load.
-
-If direct upstream fetches are blocked from Streamlit Cloud, set `LIVE_USDTNGN_PROXY_URL` to a relay endpoint you control. The app will use that proxy in preference to direct qbot access. The proxy can either return the original qbot JSON shape or a simple normalized payload like:
-
-```json
-{
-  "buyRate": 1389.64,
-  "sellRate": 1388.718,
-  "midRate": 1389.179,
-  "rateAsAt": "2026-04-12T15:11:24.156Z",
-  "provider": "bybit",
-  "source": "proxy"
-}
-```
-
-### Deploying The Relay
-
-This repo now includes a tiny proxy service in [`proxy_server.py`](./proxy_server.py). You can deploy it separately on Render, Railway, Fly, or any small Python host.
-
-For Render, this repo now includes [`render.yaml`](./render.yaml). The easiest path is:
-
-1. Create a new Web Service on Render from this GitHub repo
-2. Let Render detect `render.yaml`
-3. Fill in the secret env vars:
-   - `QBOT_SERVICE_TOKEN`
-   - `QBOT_CF_ACCESS_CLIENT_ID`
-   - `QBOT_CF_ACCESS_CLIENT_SECRET`
-   - `LIVE_USDTNGN_PROXY_TOKEN`
-4. Deploy
-5. Copy the final service URL and append `/usdtngn`
-6. Put that full URL into Streamlit as `LIVE_USDTNGN_PROXY_URL`
-
-Run it with:
-
-```bash
-pip install -r proxy-requirements.txt
-uvicorn proxy_server:app --host 0.0.0.0 --port 8000
-```
-
-Set these environment variables on the proxy host:
+Live `usdtngn` is fetched directly from the protected qbot rates-export endpoint. Set these environment variables on the server that runs the Streamlit app:
 
 ```bash
 QBOT_USDTNGN_RATE_URL=https://qbot-test.qdx.global/api/v1/rates-export/current/USDTNGN
 QBOT_SERVICE_TOKEN=...
 QBOT_CF_ACCESS_CLIENT_ID=...
 QBOT_CF_ACCESS_CLIENT_SECRET=...
-LIVE_USDTNGN_PROXY_TOKEN=your-random-secret
 ```
 
-Then set these in Streamlit secrets:
+The browser never calls qbot directly. Streamlit makes the HTTP request on the server side with the service token and Cloudflare Access credentials, so other users can open the app normally without seeing or supplying those secrets.
 
-```toml
-LIVE_USDTNGN_PROXY_URL = "https://your-proxy-domain/usdtngn"
-LIVE_USDTNGN_PROXY_TOKEN = "your-random-secret"
-```
-
-When `LIVE_USDTNGN_PROXY_URL` is present, the Streamlit app stops calling qbot directly and uses the relay instead.
+If you deploy on Streamlit Community Cloud, add the same keys in the app secrets panel; `app/main.py` mirrors those `st.secrets` values into the backend environment before settings load.
 
 ## Verification
 

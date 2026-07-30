@@ -48,9 +48,6 @@ class Settings(BaseSettings):
     news_max_age_hours: int = 72
     news_fetch_timeout_seconds: float = 10.0
 
-    live_usdtngn_source: str = "qbot"
-    live_usdtngn_proxy_url: str | None = None
-    live_usdtngn_proxy_token: str | None = None
     qbot_usdtngn_rate_url: str = "https://qbot-test.qdx.global/api/v1/rates-export/current/USDTNGN"
     qbot_service_token: str | None = None
     qbot_cf_access_client_id: str | None = None
@@ -80,8 +77,6 @@ class Settings(BaseSettings):
         return stripped or None
 
     @field_validator(
-        "live_usdtngn_proxy_url",
-        "live_usdtngn_proxy_token",
         "qbot_service_token",
         "qbot_cf_access_client_id",
         "qbot_cf_access_client_secret",
