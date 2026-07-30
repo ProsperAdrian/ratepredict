@@ -4,8 +4,8 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 from decimal import Decimal
 import json
-import subprocess
 
+import httpx
 import pandas as pd
 
 from app.config import Settings
@@ -218,7 +218,6 @@ class LiveQuoteService:
             "CF-Access-Client-Id": self.settings.qbot_cf_access_client_id,
             "CF-Access-Client-Secret": self.settings.qbot_cf_access_client_secret,
             "Accept": "application/json",
-            "User-Agent": "curl/8.7.1",
         }
 
         payload = self._request_json(
@@ -255,7 +254,6 @@ class LiveQuoteService:
                     at = at.tz_convert(UTC)
 
                 mid_rate = self._to_float(current["midRate"])
-                # Use desk ask/sell as the displayed current price.
                 current_price = self._to_float(current.get("sellRate", current["midRate"]))
                 return LiveTicker(
                     market="usdtngn",
@@ -281,10 +279,7 @@ class LiveQuoteService:
     ) -> LiveTicker:
         payload = self._request_json(
             url,
-            headers={
-                "Accept": "application/json",
-                "User-Agent": "curl/8.7.1",
-            },
+            headers={"Accept": "application/json"},
         )
 
         if payload.get("status") != "success":
@@ -321,7 +316,6 @@ class LiveQuoteService:
         return float(Decimal(str(value)))
 
     def _auth_diag(self, headers: dict[str, str]) -> str:
-        """Safe credential fingerprint for error messages (lengths only)."""
         parts = [f"url={self.settings.qbot_usdtngn_rate_url}"]
         for name in (
             "CF-Access-Client-Id",
@@ -329,7 +323,8 @@ class LiveQuoteService:
             "x-service-token",
         ):
             value = headers.get(name, "")
-            parts.append(f"{name}_len={len(value)}")
+            prefix = value[:4] if value else ""
+            parts.append(f"{name}_len={len(value)}_prefix={prefix!r}")
         return " ".join(parts)
 
     def _request_json(
@@ -339,64 +334,56 @@ class LiveQuoteService:
         *,
         follow_redirects: bool = True,
     ) -> dict:
-        command = [
-            "curl",
-            "--silent",
-            "--show-error",
-            "--max-time",
-            str(int(max(self.settings.http_timeout_seconds, 1))),
-            "--write-out",
-            "\n%{http_code}",
-        ]
-        # Do not follow redirects for Access-protected qbot calls: a 302 login
-        # page would otherwise look like a successful HTTP 200 HTML response.
-        if follow_redirects:
-            command.append("--location")
-        for name, value in headers.items():
-            command.extend(["-H", f"{name}: {value}"])
-        command.append(url)
+        timeout = max(self.settings.http_timeout_seconds, 1.0)
+        try:
+            with httpx.Client(timeout=timeout, follow_redirects=follow_redirects) as client:
+                response = client.get(url, headers=headers)
+        except httpx.HTTPError as exc:
+            raise RuntimeError(f"HTTP request failed for {url}: {exc}") from exc
 
-        result = subprocess.run(
-            command,
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-        if result.returncode != 0:
-            raise RuntimeError(f"curl failed for {url}: {result.stderr.strip() or result.stdout.strip()}")
-
-        body, _, status_text = result.stdout.rpartition("\n")
-        status_code = int(status_text.strip() or "0")
+        body = response.text
+        status_code = response.status_code
         body_snippet = " ".join(body.strip().split())[:280]
-        is_cf_html = "cloudflare" in body_snippet.lower() or "no-js ie6 oldie" in body_snippet.lower()
+        lower = body_snippet.lower()
+        is_access_login = "cloudflare access" in lower or "sign in" in lower
+        is_waf_block = "no-js ie6 oldie" in lower or (
+            status_code == 403 and "<!doctype html>" in lower and not is_access_login
+        )
 
         if status_code in {301, 302, 303, 307, 308}:
             raise RuntimeError(
                 f"Upstream returned HTTP {status_code} (Cloudflare Access redirect). "
-                "Service token headers were not accepted. "
+                "CF-Access Client Id/Secret were not accepted. "
                 f"{self._auth_diag(headers)}. Response snippet: {body_snippet or '[empty body]'}"
             )
         if status_code == 403:
+            if is_waf_block:
+                raise RuntimeError(
+                    "Upstream returned 403 Cloudflare WAF/bot block from this host's egress IP. "
+                    "Credentials are being sent "
+                    f"({self._auth_diag(headers)}), but Cloudflare is blocking the "
+                    "Streamlit Cloud server IP. Ask Access/WAF admin to allow this egress, "
+                    "or host the Streamlit app on infra that can already reach qbot. "
+                    f"Response snippet: {body_snippet or '[empty body]'}"
+                )
             raise RuntimeError(
                 "Upstream returned 403 Forbidden. "
-                "Usually wrong/missing CF-Access or x-service-token values, "
-                "not an IP block — Access service tokens are IP-independent. "
                 f"{self._auth_diag(headers)}. "
                 f"Response snippet: {body_snippet or '[empty body]'}"
             )
         if status_code >= 400:
             raise RuntimeError(
                 f"Request failed with HTTP {status_code}. "
-                f"{self._auth_diag(headers) if is_cf_html else ''} "
+                f"{self._auth_diag(headers)}. "
                 f"Response snippet: {body_snippet or '[empty body]'}"
             )
 
         try:
-            return json.loads(body)
+            return response.json()
         except json.JSONDecodeError as exc:
             raise RuntimeError(
                 f"Non-JSON response returned from {url}. "
-                f"{self._auth_diag(headers) if is_cf_html else ''} "
+                f"{self._auth_diag(headers)}. "
                 f"Response snippet: {body_snippet or '[empty body]'}"
             ) from exc
 
@@ -412,10 +399,7 @@ class QuidaxKlineService:
 
         payload = LiveQuoteService(self.settings)._request_json(
             url,
-            headers={
-                "Accept": "application/json",
-                "User-Agent": "curl/8.7.1",
-            },
+            headers={"Accept": "application/json"},
         )
 
         if payload.get("status") != "success":
