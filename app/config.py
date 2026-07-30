@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from functools import lru_cache
 from pathlib import Path
+from typing import Any
 
 from pydantic import Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, PydanticBaseSettingsSource, SettingsConfigDict
@@ -9,6 +10,16 @@ from pydantic_settings import BaseSettings, PydanticBaseSettingsSource, Settings
 GEMINI_MODEL_ALIASES = {
     "gemini-3.1-flash": "gemini-3-flash-preview",
     "gemini-3-flash": "gemini-3-flash-preview",
+}
+
+# Maps Streamlit secret / env names → Settings field names.
+SECRET_ENV_TO_FIELD = {
+    "GEMINI_API_KEY": "gemini_api_key",
+    "QBOT_USDTNGN_RATE_URL": "qbot_usdtngn_rate_url",
+    "QBOT_SERVICE_TOKEN": "qbot_service_token",
+    "QBOT_CF_ACCESS_CLIENT_ID": "qbot_cf_access_client_id",
+    "QBOT_CF_ACCESS_CLIENT_SECRET": "qbot_cf_access_client_secret",
+    "QUIDAX_BTCNGN_TICKER_URL": "quidax_btcngn_ticker_url",
 }
 
 
@@ -127,14 +138,33 @@ class Settings(BaseSettings):
         dotenv_settings: PydanticBaseSettingsSource,
         file_secret_settings: PydanticBaseSettingsSource,
     ) -> tuple[PydanticBaseSettingsSource, ...]:
-        # In this app, the project-local .env should win over any exported shell
-        # variables so the dashboard uses the workspace configuration the user sees.
+        # init (Streamlit secret overrides) > dotenv > env.
+        # On Streamlit Cloud there is usually no .env, so secrets arrive via init.
         return init_settings, dotenv_settings, env_settings, file_secret_settings
+
+
+def streamlit_secret_overrides() -> dict[str, Any]:
+    """Read flat Streamlit secrets as Settings init kwargs (highest priority)."""
+    try:
+        import streamlit as st
+
+        secret_mapping = st.secrets
+    except Exception:
+        return {}
+
+    overrides: dict[str, Any] = {}
+    for env_name, field_name in SECRET_ENV_TO_FIELD.items():
+        if env_name not in secret_mapping:
+            continue
+        value = str(secret_mapping[env_name]).strip()
+        if value:
+            overrides[field_name] = value
+    return overrides
 
 
 @lru_cache
 def get_settings() -> Settings:
-    settings = Settings()
+    settings = Settings(**streamlit_secret_overrides())
     settings.runtime_dir.mkdir(parents=True, exist_ok=True)
     settings.data_dir.mkdir(parents=True, exist_ok=True)
     return settings

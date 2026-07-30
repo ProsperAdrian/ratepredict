@@ -218,14 +218,13 @@ class LiveQuoteService:
             "CF-Access-Client-Id": self.settings.qbot_cf_access_client_id,
             "CF-Access-Client-Secret": self.settings.qbot_cf_access_client_secret,
             "Accept": "application/json",
-            # Match the working curl call more closely in case upstream policy is
-            # sensitive to non-browser client fingerprints.
             "User-Agent": "curl/8.7.1",
         }
 
         payload = self._request_json(
             self.settings.qbot_usdtngn_rate_url,
             headers=headers,
+            follow_redirects=False,
         )
 
         result = self._ticker_from_payload(payload, fallback_source_id="qbot_usdtngn")
@@ -321,17 +320,38 @@ class LiveQuoteService:
     def _to_float(self, value: str | float | int) -> float:
         return float(Decimal(str(value)))
 
-    def _request_json(self, url: str, headers: dict[str, str]) -> dict:
+    def _auth_diag(self, headers: dict[str, str]) -> str:
+        """Safe credential fingerprint for error messages (lengths only)."""
+        parts = [f"url={self.settings.qbot_usdtngn_rate_url}"]
+        for name in (
+            "CF-Access-Client-Id",
+            "CF-Access-Client-Secret",
+            "x-service-token",
+        ):
+            value = headers.get(name, "")
+            parts.append(f"{name}_len={len(value)}")
+        return " ".join(parts)
+
+    def _request_json(
+        self,
+        url: str,
+        headers: dict[str, str],
+        *,
+        follow_redirects: bool = True,
+    ) -> dict:
         command = [
             "curl",
             "--silent",
             "--show-error",
-            "--location",
             "--max-time",
             str(int(max(self.settings.http_timeout_seconds, 1))),
             "--write-out",
             "\n%{http_code}",
         ]
+        # Do not follow redirects for Access-protected qbot calls: a 302 login
+        # page would otherwise look like a successful HTTP 200 HTML response.
+        if follow_redirects:
+            command.append("--location")
         for name, value in headers.items():
             command.extend(["-H", f"{name}: {value}"])
         command.append(url)
@@ -348,22 +368,36 @@ class LiveQuoteService:
         body, _, status_text = result.stdout.rpartition("\n")
         status_code = int(status_text.strip() or "0")
         body_snippet = " ".join(body.strip().split())[:280]
+        is_cf_html = "cloudflare" in body_snippet.lower() or "no-js ie6 oldie" in body_snippet.lower()
 
+        if status_code in {301, 302, 303, 307, 308}:
+            raise RuntimeError(
+                f"Upstream returned HTTP {status_code} (Cloudflare Access redirect). "
+                "Service token headers were not accepted. "
+                f"{self._auth_diag(headers)}. Response snippet: {body_snippet or '[empty body]'}"
+            )
         if status_code == 403:
             raise RuntimeError(
-                "Upstream returned 403 Forbidden to the server-side curl request. "
+                "Upstream returned 403 Forbidden. "
+                "Usually wrong/missing CF-Access or x-service-token values, "
+                "not an IP block — Access service tokens are IP-independent. "
+                f"{self._auth_diag(headers)}. "
                 f"Response snippet: {body_snippet or '[empty body]'}"
             )
         if status_code >= 400:
             raise RuntimeError(
-                f"Request failed with HTTP {status_code}. Response snippet: {body_snippet or '[empty body]'}"
+                f"Request failed with HTTP {status_code}. "
+                f"{self._auth_diag(headers) if is_cf_html else ''} "
+                f"Response snippet: {body_snippet or '[empty body]'}"
             )
 
         try:
             return json.loads(body)
         except json.JSONDecodeError as exc:
             raise RuntimeError(
-                f"Non-JSON response returned from {url}. Response snippet: {body_snippet or '[empty body]'}"
+                f"Non-JSON response returned from {url}. "
+                f"{self._auth_diag(headers) if is_cf_html else ''} "
+                f"Response snippet: {body_snippet or '[empty body]'}"
             ) from exc
 
 

@@ -20,7 +20,7 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from app.config import Settings, get_settings, reload_settings
+from app.config import SECRET_ENV_TO_FIELD, Settings, get_settings, reload_settings
 from app.macro_calendar import get_month_events as _get_month_events, get_categories as get_macro_categories, EVENTS as MACRO_EVENTS
 from app.schemas import InferenceSnapshot
 from app.services.artifacts import ArtifactLoader, ExportLoader
@@ -545,20 +545,14 @@ hr { border-color: var(--line) !important; }
 # ===================================================================
 
 SIGNAL_LOG_PATH = PROJECT_ROOT / "app" / "signal_log.csv"
-SETTINGS_STATE_VERSION = 5
+SETTINGS_STATE_VERSION = 6
 SIGNAL_LOG_COLUMNS = [
     "datetime", "signal", "forecast_price", "current_price",
     "predicted_return", "actual_price_2h", "result", "pnl_bps",
     "confidence", "ai_sentiment", "ai_magnitude",
 ]
 
-STREAMLIT_SECRET_ENV_KEYS = (
-    "QBOT_USDTNGN_RATE_URL",
-    "QBOT_SERVICE_TOKEN",
-    "QBOT_CF_ACCESS_CLIENT_ID",
-    "QBOT_CF_ACCESS_CLIENT_SECRET",
-    "QUIDAX_BTCNGN_TICKER_URL",
-)
+STREAMLIT_SECRET_ENV_KEYS = tuple(SECRET_ENV_TO_FIELD.keys())
 
 
 def sync_streamlit_secrets_to_env() -> None:
@@ -567,7 +561,8 @@ def sync_streamlit_secrets_to_env() -> None:
     except Exception:
         return
 
-    # Streamlit secrets must win over any pre-set empty/stale env vars on Cloud.
+    # Mirror secrets into env for any non-Settings readers, and so Cloud
+    # credentials are visible even if Settings was constructed earlier.
     for key in STREAMLIT_SECRET_ENV_KEYS:
         if key in secret_mapping:
             os.environ[key] = str(secret_mapping[key]).strip()
