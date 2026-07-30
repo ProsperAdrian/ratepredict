@@ -218,6 +218,7 @@ class LiveQuoteService:
             "CF-Access-Client-Id": self.settings.qbot_cf_access_client_id,
             "CF-Access-Client-Secret": self.settings.qbot_cf_access_client_secret,
             "Accept": "application/json",
+            "User-Agent": f"ratepredict/{self.settings.app_version} (server-to-server)",
         }
 
         payload = self._request_json(
@@ -315,16 +316,32 @@ class LiveQuoteService:
     def _to_float(self, value: str | float | int) -> float:
         return float(Decimal(str(value)))
 
-    def _auth_diag(self, headers: dict[str, str]) -> str:
-        parts = [f"url={self.settings.qbot_usdtngn_rate_url}"]
-        for name in (
-            "CF-Access-Client-Id",
-            "CF-Access-Client-Secret",
-            "x-service-token",
-        ):
-            value = headers.get(name, "")
-            prefix = value[:4] if value else ""
-            parts.append(f"{name}_len={len(value)}_prefix={prefix!r}")
+    def _request_diag(
+        self,
+        *,
+        url: str,
+        transport: str,
+        request_headers: dict[str, str],
+        response_headers: dict[str, str],
+    ) -> str:
+        """Return useful request metadata without disclosing credential material."""
+        access_headers_present = all(
+            request_headers.get(name)
+            for name in ("CF-Access-Client-Id", "CF-Access-Client-Secret")
+        )
+        service_token_present = bool(request_headers.get("x-service-token"))
+        parts = [
+            f"transport={transport}",
+            f"url={url}",
+            f"cf_access_headers={'present' if access_headers_present else 'missing'}",
+            f"service_token={'present' if service_token_present else 'missing'}",
+        ]
+        if cf_ray := response_headers.get("cf-ray"):
+            parts.append(f"cf_ray={cf_ray}")
+        if server := response_headers.get("server"):
+            parts.append(f"server={server}")
+        if content_type := response_headers.get("content-type"):
+            parts.append(f"content_type={content_type.split(';', 1)[0]}")
         return " ".join(parts)
 
     def _request_json(
@@ -335,11 +352,17 @@ class LiveQuoteService:
         follow_redirects: bool = True,
     ) -> dict:
         timeout = max(self.settings.http_timeout_seconds, 1.0)
-        status_code, body, transport = self._http_get(
+        status_code, body, transport, response_headers = self._http_get(
             url,
             headers=headers,
             timeout=timeout,
             follow_redirects=follow_redirects,
+        )
+        request_diag = self._request_diag(
+            url=url,
+            transport=transport,
+            request_headers=headers,
+            response_headers=response_headers,
         )
 
         body_snippet = " ".join(body.strip().split())[:280]
@@ -353,27 +376,30 @@ class LiveQuoteService:
             raise RuntimeError(
                 f"Upstream returned HTTP {status_code} (Cloudflare Access redirect). "
                 "CF-Access Client Id/Secret were not accepted. "
-                f"transport={transport} {self._auth_diag(headers)}. "
+                f"{request_diag}. "
                 f"Response snippet: {body_snippet or '[empty body]'}"
             )
         if status_code == 403:
             if is_waf_block:
                 raise RuntimeError(
                     "Upstream returned 403 Cloudflare bot/WAF HTML. "
-                    f"transport={transport} {self._auth_diag(headers)}. "
-                    "Credentials look present; Cloudflare still rejected the client fingerprint "
-                    "from this host. Response snippet: "
+                    f"{request_diag}. "
+                    "Cloudflare denied this host before the QBOT API could respond. "
+                    "Access credentials do not bypass separate IP/ASN, country, WAF, "
+                    "Browser Integrity Check, or bot rules. Ask the Cloudflare zone owner "
+                    "to look up cf_ray in Security Events and narrowly allow this API client. "
+                    "Response snippet: "
                     f"{body_snippet or '[empty body]'}"
                 )
             raise RuntimeError(
                 "Upstream returned 403 Forbidden. "
-                f"transport={transport} {self._auth_diag(headers)}. "
+                f"{request_diag}. "
                 f"Response snippet: {body_snippet or '[empty body]'}"
             )
         if status_code >= 400:
             raise RuntimeError(
                 f"Request failed with HTTP {status_code}. "
-                f"transport={transport} {self._auth_diag(headers)}. "
+                f"{request_diag}. "
                 f"Response snippet: {body_snippet or '[empty body]'}"
             )
 
@@ -382,7 +408,7 @@ class LiveQuoteService:
         except json.JSONDecodeError as exc:
             raise RuntimeError(
                 f"Non-JSON response returned from {url}. "
-                f"transport={transport} {self._auth_diag(headers)}. "
+                f"{request_diag}. "
                 f"Response snippet: {body_snippet or '[empty body]'}"
             ) from exc
 
@@ -393,32 +419,13 @@ class LiveQuoteService:
         headers: dict[str, str],
         timeout: float,
         follow_redirects: bool,
-    ) -> tuple[int, str, str]:
-        """Prefer browser-impersonated TLS for Cloudflare-protected hosts."""
-        uses_cf_access = "CF-Access-Client-Id" in headers
-        cf_error = ""
-        if uses_cf_access:
-            try:
-                from curl_cffi import requests as cf_requests
-
-                response = cf_requests.get(
-                    url,
-                    headers=headers,
-                    timeout=timeout,
-                    allow_redirects=follow_redirects,
-                    impersonate="chrome",
-                )
-                return response.status_code, response.text, "curl_cffi/chrome"
-            except Exception as exc:
-                cf_error = str(exc)
-
+    ) -> tuple[int, str, str, dict[str, str]]:
+        """Perform a normal server-to-server request with explicit Access headers."""
         try:
             with httpx.Client(timeout=timeout, follow_redirects=follow_redirects) as client:
                 response = client.get(url, headers=headers)
-            transport = "httpx"
-            if cf_error:
-                transport = f"httpx(after curl_cffi error: {cf_error[:120]})"
-            return response.status_code, response.text, transport
+            response_headers = {name.lower(): value for name, value in response.headers.items()}
+            return response.status_code, response.text, "httpx", response_headers
         except httpx.HTTPError as exc:
             raise RuntimeError(f"HTTP request failed for {url}: {exc}") from exc
 

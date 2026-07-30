@@ -47,11 +47,32 @@ The browser never calls qbot directly. Streamlit makes the HTTP request on the s
 
 ### Important: Streamlit Community Cloud
 
-Streamlit Community Cloud egress is currently blocked by Cloudflare WAF in front of `qbot-test.qdx.global` (403 HTML), even when Access credentials are valid. That is why local curl works and Community Cloud fails.
+Cloudflare Access service tokens authenticate the caller, but they do not bypass
+separate Cloudflare IP/ASN, country, WAF, Browser Integrity Check, or bot rules.
+If the same credentials return `200` locally and Cloudflare HTML with `403` on
+Community Cloud, secret loading is not the problem: a Cloudflare security rule is
+rejecting the Community Cloud source network.
 
-Deploy the app on a host whose egress can already reach qbot (your laptop, company infra, or Render). This is still a direct call to the original URL + tokens — not a rates proxy.
+The error shown by the app includes a safe `cf_ray` identifier. Give that Ray ID
+and the request timestamp to the Cloudflare zone owner, then:
 
-### Deploy on Render (recommended alternative to Community Cloud)
+1. Find the request in **Security > Events** and identify the exact product/rule
+   that blocked it.
+2. Keep the Access application policy set to **Service Auth** for the issued
+   service token.
+3. Add the narrowest exception for the exact hostname/API path and the approved
+   deployment source. Do not make the endpoint public.
+
+Cloudflare documents the required [service-token headers](https://developers.cloudflare.com/cloudflare-one/access-controls/service-credentials/service-tokens/)
+and the [WAF skip options](https://developers.cloudflare.com/waf/custom-rules/skip/options/).
+Streamlit publishes its current [Community Cloud egress IP list](https://docs.streamlit.io/deploy/streamlit-community-cloud/status/#ip-addresses),
+but warns that those addresses may change without notice.
+
+If the security policy cannot accommodate Community Cloud, deploy on company
+infrastructure with an approved/static egress IP. A different public cloud host
+is only a solution if its outbound network is explicitly allowed by Cloudflare.
+
+### Deploy on Render (alternative host; verify its egress is allowed)
 
 This repo includes [`render.yaml`](./render.yaml).
 

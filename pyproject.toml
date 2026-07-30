@@ -13,7 +13,6 @@ dependencies = [
   "xgboost>=2.0.0",
   "lightgbm>=4.0.0",
   "httpx>=0.25.0",
-  "curl_cffi>=0.7.0",
   "pydantic-settings>=2.0.0",
 ]
 
