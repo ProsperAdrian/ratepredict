@@ -144,21 +144,25 @@ class Settings(BaseSettings):
 
 
 def streamlit_secret_overrides() -> dict[str, Any]:
-    """Read flat Streamlit secrets as Settings init kwargs (highest priority)."""
+    """Read flat Streamlit secrets as Settings init kwargs (highest priority).
+
+    Returns {} when no secrets.toml exists so local .env can drive Settings.
+    """
     try:
         import streamlit as st
 
-        secret_mapping = st.secrets
+        secret_mapping = st.secrets.to_dict()
     except Exception:
         return {}
 
     overrides: dict[str, Any] = {}
     for env_name, field_name in SECRET_ENV_TO_FIELD.items():
-        if env_name not in secret_mapping:
+        value = secret_mapping.get(env_name)
+        if value is None:
             continue
-        value = str(secret_mapping[env_name]).strip()
-        if value:
-            overrides[field_name] = value
+        text = str(value).strip()
+        if text:
+            overrides[field_name] = text
     return overrides
 
 

@@ -545,7 +545,7 @@ hr { border-color: var(--line) !important; }
 # ===================================================================
 
 SIGNAL_LOG_PATH = PROJECT_ROOT / "app" / "signal_log.csv"
-SETTINGS_STATE_VERSION = 6
+SETTINGS_STATE_VERSION = 7
 SIGNAL_LOG_COLUMNS = [
     "datetime", "signal", "forecast_price", "current_price",
     "predicted_return", "actual_price_2h", "result", "pnl_bps",
@@ -556,16 +556,23 @@ STREAMLIT_SECRET_ENV_KEYS = tuple(SECRET_ENV_TO_FIELD.keys())
 
 
 def sync_streamlit_secrets_to_env() -> None:
+    """Copy Streamlit secrets into os.environ when present.
+
+    Locally there is often no secrets.toml — only .env — so missing secrets
+    must be a no-op, not a crash.
+    """
     try:
-        secret_mapping = st.secrets
+        secret_mapping = st.secrets.to_dict()
     except Exception:
         return
 
-    # Mirror secrets into env for any non-Settings readers, and so Cloud
-    # credentials are visible even if Settings was constructed earlier.
     for key in STREAMLIT_SECRET_ENV_KEYS:
-        if key in secret_mapping:
-            os.environ[key] = str(secret_mapping[key]).strip()
+        value = secret_mapping.get(key)
+        if value is None:
+            continue
+        text = str(value).strip()
+        if text:
+            os.environ[key] = text
 
 
 def compute_confidence(
