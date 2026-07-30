@@ -335,14 +335,13 @@ class LiveQuoteService:
         follow_redirects: bool = True,
     ) -> dict:
         timeout = max(self.settings.http_timeout_seconds, 1.0)
-        try:
-            with httpx.Client(timeout=timeout, follow_redirects=follow_redirects) as client:
-                response = client.get(url, headers=headers)
-        except httpx.HTTPError as exc:
-            raise RuntimeError(f"HTTP request failed for {url}: {exc}") from exc
+        status_code, body, transport = self._http_get(
+            url,
+            headers=headers,
+            timeout=timeout,
+            follow_redirects=follow_redirects,
+        )
 
-        body = response.text
-        status_code = response.status_code
         body_snippet = " ".join(body.strip().split())[:280]
         lower = body_snippet.lower()
         is_access_login = "cloudflare access" in lower or "sign in" in lower
@@ -354,38 +353,74 @@ class LiveQuoteService:
             raise RuntimeError(
                 f"Upstream returned HTTP {status_code} (Cloudflare Access redirect). "
                 "CF-Access Client Id/Secret were not accepted. "
-                f"{self._auth_diag(headers)}. Response snippet: {body_snippet or '[empty body]'}"
+                f"transport={transport} {self._auth_diag(headers)}. "
+                f"Response snippet: {body_snippet or '[empty body]'}"
             )
         if status_code == 403:
             if is_waf_block:
                 raise RuntimeError(
-                    "Upstream returned 403 Cloudflare WAF/bot block from this host's egress IP. "
-                    "Credentials are being sent "
-                    f"({self._auth_diag(headers)}), but Cloudflare is blocking the "
-                    "Streamlit Cloud server IP. Ask Access/WAF admin to allow this egress, "
-                    "or host the Streamlit app on infra that can already reach qbot. "
-                    f"Response snippet: {body_snippet or '[empty body]'}"
+                    "Upstream returned 403 Cloudflare bot/WAF HTML. "
+                    f"transport={transport} {self._auth_diag(headers)}. "
+                    "Credentials look present; Cloudflare still rejected the client fingerprint "
+                    "from this host. Response snippet: "
+                    f"{body_snippet or '[empty body]'}"
                 )
             raise RuntimeError(
                 "Upstream returned 403 Forbidden. "
-                f"{self._auth_diag(headers)}. "
+                f"transport={transport} {self._auth_diag(headers)}. "
                 f"Response snippet: {body_snippet or '[empty body]'}"
             )
         if status_code >= 400:
             raise RuntimeError(
                 f"Request failed with HTTP {status_code}. "
-                f"{self._auth_diag(headers)}. "
+                f"transport={transport} {self._auth_diag(headers)}. "
                 f"Response snippet: {body_snippet or '[empty body]'}"
             )
 
         try:
-            return response.json()
+            return json.loads(body)
         except json.JSONDecodeError as exc:
             raise RuntimeError(
                 f"Non-JSON response returned from {url}. "
-                f"{self._auth_diag(headers)}. "
+                f"transport={transport} {self._auth_diag(headers)}. "
                 f"Response snippet: {body_snippet or '[empty body]'}"
             ) from exc
+
+    def _http_get(
+        self,
+        url: str,
+        *,
+        headers: dict[str, str],
+        timeout: float,
+        follow_redirects: bool,
+    ) -> tuple[int, str, str]:
+        """Prefer browser-impersonated TLS for Cloudflare-protected hosts."""
+        uses_cf_access = "CF-Access-Client-Id" in headers
+        cf_error = ""
+        if uses_cf_access:
+            try:
+                from curl_cffi import requests as cf_requests
+
+                response = cf_requests.get(
+                    url,
+                    headers=headers,
+                    timeout=timeout,
+                    allow_redirects=follow_redirects,
+                    impersonate="chrome",
+                )
+                return response.status_code, response.text, "curl_cffi/chrome"
+            except Exception as exc:
+                cf_error = str(exc)
+
+        try:
+            with httpx.Client(timeout=timeout, follow_redirects=follow_redirects) as client:
+                response = client.get(url, headers=headers)
+            transport = "httpx"
+            if cf_error:
+                transport = f"httpx(after curl_cffi error: {cf_error[:120]})"
+            return response.status_code, response.text, transport
+        except httpx.HTTPError as exc:
+            raise RuntimeError(f"HTTP request failed for {url}: {exc}") from exc
 
 
 class QuidaxKlineService:
