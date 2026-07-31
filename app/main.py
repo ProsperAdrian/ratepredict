@@ -43,12 +43,13 @@ st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap');
 :root {
-    --bg: #f5f1e8;
-    --panel: #fffdf8;
+    --bg: #ffffff;
+    --panel: #ffffff;
     --panel-strong: #ffffff;
-    --ink: #16202b;
+    --ink: #111111;
     --muted: #5f6b76;
-    --line: #ddd4c3;
+    --border: #111111;
+    --line: #e5e5e5;
     --brand: #123b63;
     --brand-soft: #dce7f2;
     --up: #13795b;
@@ -57,7 +58,8 @@ st.markdown("""
     --down-soft: #f9e3dc;
     --amber: #a56a00;
     --amber-soft: #f8edcf;
-    --shadow: 0 20px 40px rgba(31, 42, 55, 0.06);
+    --shadow: none;
+    --section-bg: #f5f5f5;
 }
 html, body, [class*="stApp"], p, span, div, input, textarea, select, button, label, td, th, li {
     font-family: 'IBM Plex Sans', sans-serif !important;
@@ -94,9 +96,7 @@ header[data-testid="stHeader"] {
     border-bottom: none !important;
 }
 [data-testid="stAppViewContainer"] {
-    background:
-        radial-gradient(circle at top left, rgba(18, 59, 99, 0.08), transparent 28%),
-        linear-gradient(180deg, #fbf8f1 0%, var(--bg) 100%);
+    background: #ffffff;
 }
 /* Ensure sidebar toggle button is always visible */
 button[data-testid="stSidebarCollapseButton"],
@@ -114,7 +114,7 @@ div[data-testid="stVerticalBlock"] > div:first-child > .desk-banner {
 section[data-testid="stSidebar"] > div:first-child { padding-top: 2rem !important; }
 
 section[data-testid="stSidebar"] {
-    background: linear-gradient(180deg, #f8f5ee 0%, #f2ece0 100%);
+    background: #ffffff;
     border-right: 1px solid var(--line);
 }
 section[data-testid="stSidebar"] .stButton > button[kind="primary"] {
@@ -127,11 +127,11 @@ section[data-testid="stSidebar"] .stButton > button[kind="primary"] {
     box-shadow: none !important;
 }
 [data-testid="stMetric"] {
-    border: 1px solid var(--line);
+    border: none;
     border-radius: 20px;
     padding: 16px 18px;
-    background: var(--panel);
-    box-shadow: var(--shadow);
+    background: var(--section-bg);
+    box-shadow: none;
 }
 [data-testid="stMetricLabel"] p {
     font-size: 0.7rem !important;
@@ -161,15 +161,15 @@ section[data-testid="stSidebar"] .stButton > button[kind="primary"] {
     font-size: 0.84rem;
     font-weight: 600;
     color: var(--muted);
-    border: 1px solid var(--line);
-    background: rgba(255,255,255,0.6);
+    border: none;
+    background: transparent;
     border-radius: 999px;
     box-shadow: none !important;
 }
 .stTabs [aria-selected="true"] {
     color: #ffffff !important;
-    border: 1px solid #111111 !important;
-    background: #111111 !important;
+    border: none !important;
+    background: var(--border) !important;
     box-shadow: none !important;
 }
 .stTabs [data-baseweb="tab-highlight"] {
@@ -191,7 +191,7 @@ div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div .st
     z-index: 80;
     padding: 0.5rem 0 0.9rem;
     margin-bottom: 0.6rem;
-    background: linear-gradient(180deg, rgba(251, 248, 241, 0.96) 0%, rgba(245, 241, 232, 0.92) 100%) !important;
+    background: rgba(255, 255, 255, 0.96) !important;
     backdrop-filter: blur(10px);
     border-bottom: none !important;
     box-shadow: none !important;
@@ -205,10 +205,10 @@ div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div .st
 }
 
 [data-testid="stDataFrame"] {
-    border: 1px solid var(--line);
+    border: none;
     border-radius: 20px;
     overflow: hidden;
-    box-shadow: var(--shadow);
+    box-shadow: none;
     background: var(--bg);
 }
 [data-testid="stDataFrame"] iframe {
@@ -241,28 +241,35 @@ div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div .st
     outline: none !important;
 }
 hr { border-color: var(--line) !important; }
+/* Prevent Streamlit defaults from stacking extra dark borders */
+[data-testid="stVerticalBlock"] > div,
+[data-testid="stHorizontalBlock"] > div,
+[data-testid="stExpander"],
+[data-testid="stExpander"] details,
+[data-testid="stExpander"] summary {
+    border-color: var(--line) !important;
+    box-shadow: none !important;
+}
+section[data-testid="stSidebar"] > div {
+    border-right: none !important;
+}
 .desk-banner,
 .desk-card,
 .desk-ai-card,
 .desk-shell {
-    border: 1px solid var(--line);
-    background: var(--panel);
-    box-shadow: var(--shadow);
+    border: none;
+    background: var(--section-bg);
+    box-shadow: none;
+    border-radius: 24px;
 }
 .desk-banner {
     position: relative;
     overflow: hidden;
-    border-radius: 28px;
     padding: 28px 30px;
-    margin-bottom: 18px;
+    margin-bottom: 16px;
 }
 .desk-banner::after {
-    content: "";
-    position: absolute;
-    inset: auto -40px -70px auto;
-    width: 280px;
-    height: 280px;
-    background: radial-gradient(circle, rgba(18,59,99,0.12), transparent 70%);
+    display: none;
 }
 .desk-kicker {
     font-size: 0.72rem;
@@ -283,21 +290,29 @@ hr { border-color: var(--line) !important; }
     max-width: 760px;
     font-size: 0.96rem;
 }
-.desk-pill {
-    display: inline-flex;
+.desk-meta-row {
+    display: flex;
+    flex-wrap: wrap;
     align-items: center;
-    gap: 8px;
-    padding: 7px 12px;
-    border-radius: 999px;
-    border: 1px solid var(--line);
-    font-size: 0.76rem;
-    font-weight: 600;
-    color: var(--ink);
-    background: rgba(255,255,255,0.78);
-    margin-right: 8px;
+    margin-top: 16px;
+    font-size: 0.82rem;
+    color: var(--muted);
+}
+.desk-pill {
+    display: inline;
+    padding: 0;
+    font-size: inherit;
+    font-weight: 500;
+    color: var(--muted);
+    background: transparent;
+}
+.desk-pill + .desk-pill::before {
+    content: "·";
+    margin: 0 10px;
+    color: var(--muted);
+    font-weight: 400;
 }
 .desk-card {
-    border-radius: 24px;
     padding: 22px 24px;
     margin-bottom: 16px;
 }
@@ -331,10 +346,10 @@ hr { border-color: var(--line) !important; }
     margin-top: 18px;
 }
 .desk-micro {
-    border: 1px solid var(--line);
+    border: none;
     border-radius: 18px;
     padding: 14px 16px;
-    background: rgba(255,255,255,0.72);
+    background: #ffffff;
 }
 .desk-micro-label {
     font-size: 0.69rem;
@@ -348,11 +363,12 @@ hr { border-color: var(--line) !important; }
     font-size: 1.15rem;
     color: var(--ink);
 }
-.desk-signal-up { background: linear-gradient(180deg, #fbfffc 0%, #eef8f2 100%); }
-.desk-signal-down { background: linear-gradient(180deg, #fffaf8 0%, #fdf0eb 100%); }
-.desk-signal-neutral { background: linear-gradient(180deg, #fffefc 0%, #f5f1e8 100%); }
+.desk-signal-up,
+.desk-signal-down,
+.desk-signal-neutral {
+    background: var(--section-bg);
+}
 .desk-ai-card {
-    border-radius: 24px;
     padding: 22px 24px;
     margin-bottom: 16px;
 }
@@ -392,15 +408,31 @@ hr { border-color: var(--line) !important; }
     gap: 12px;
 }
 .desk-math-step {
-    border: 1px solid var(--line);
+    border: none;
     border-radius: 18px;
     padding: 14px 16px;
-    background: rgba(255,255,255,0.72);
+    background: #ffffff;
+}
+.desk-signal-table-wrap {
+    width: 100%;
+    background: var(--section-bg);
+    border-radius: 16px;
+    margin-bottom: 28px;
+    padding: 16px;
+}
+.desk-signal-table-inner {
+    max-height: 420px;
+    overflow: auto;
+    background: #ffffff;
+    border-radius: 0;
 }
 .desk-signal-table {
     width: 100%;
+    min-width: 100%;
     border-collapse: collapse;
     font-size: 0.82rem;
+    table-layout: fixed;
+    background: #ffffff;
 }
 .desk-signal-table th {
     padding: 10px 14px;
@@ -411,11 +443,17 @@ hr { border-color: var(--line) !important; }
     text-transform: uppercase;
     letter-spacing: 0.06em;
     border-bottom: 1px solid var(--line);
+    white-space: nowrap;
+    background: #ffffff;
 }
 .desk-signal-table td {
     padding: 9px 14px;
     color: var(--ink);
     border-bottom: 1px solid var(--line);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    background: #ffffff;
 }
 .desk-signal-table tr:last-child td { border-bottom: none; }
 .desk-input-table {
@@ -435,8 +473,17 @@ hr { border-color: var(--line) !important; }
     text-transform: uppercase;
     letter-spacing: 0.06em;
     font-size: 0.75rem;
-    font-weight: 700;
+    font-weight: 400;
     border-right: 1px solid var(--line);
+}
+.desk-input-table .desk-input-section td {
+    color: var(--ink);
+    font-weight: 700;
+    font-size: 0.82rem;
+    letter-spacing: normal;
+    text-transform: none;
+    padding: 10px 18px;
+    border-right: none;
 }
 .desk-input-table td:last-child {
     font-size: 0.96rem;
@@ -472,8 +519,12 @@ hr { border-color: var(--line) !important; }
     text-transform: uppercase;
 }
 .desk-news-badge-live { background: var(--up-soft); color: var(--up); }
-.desk-news-badge-cat { background: var(--brand-soft); color: var(--brand); }
+.desk-news-badge-cat { background: #111111; color: #ffffff; }
 .desk-news-badge-warn { background: var(--amber-soft); color: var(--amber); }
+.desk-news-cat-header {
+    margin-top: 14px;
+    margin-bottom: 6px;
+}
 .desk-news-item {
     padding: 10px 0;
     border-bottom: 1px solid var(--line);
@@ -519,8 +570,8 @@ hr { border-color: var(--line) !important; }
     padding: 6px 10px;
     border-radius: 10px;
     font-size: 0.72rem;
-    border: 1px solid var(--line);
-    background: var(--panel);
+    border: none;
+    background: #ffffff;
 }
 .desk-source-dot {
     width: 7px; height: 7px;
@@ -1247,7 +1298,7 @@ def render_header(result: dict):
     <div class="desk-subtitle">
         Live quote, ensemble forecast, and a AI overlay for human intervention.
     </div>
-    <div style="margin-top:16px;">
+    <div class="desk-meta-row">
         <span class="desk-pill">{escape(result["timestamp"].strftime("%H:%M WAT"))}</span>
         <span class="desk-pill">{escape(ai_status)}</span>
     </div>
@@ -1441,24 +1492,24 @@ def render_ai(result: dict):
         Both signals are independent.
     </div>
     <table class="desk-input-table">
-        <tr><td colspan="2" style="font-weight:700;color:var(--brand);font-size:0.72rem;letter-spacing:0.1em;padding:10px 18px;">SPOT MARKET</td></tr>
+        <tr class="desk-input-section"><td colspan="2">Spot Market</td></tr>
         <tr><td>Current Rate</td><td>{fmt(inputs["current_rate"])}</td></tr>
         <tr><td>Bid / Ask (Spread)</td><td>{spread_display}</td></tr>
-        <tr><td colspan="2" style="font-weight:700;color:var(--brand);font-size:0.72rem;letter-spacing:0.1em;padding:10px 18px;">PRICE MOMENTUM</td></tr>
+        <tr class="desk-input-section"><td colspan="2">Price Momentum</td></tr>
         <tr><td>2h Change</td><td>{fmt_plain_pct(inputs["change_2h_pct"])}</td></tr>
         <tr><td>8h Change</td><td>{fmt_plain_pct(inputs["change_8h_pct"])}</td></tr>
         <tr><td>24h Change</td><td>{fmt_plain_pct(inputs["change_24h_pct"])}</td></tr>
-        <tr><td colspan="2" style="font-weight:700;color:var(--brand);font-size:0.72rem;letter-spacing:0.1em;padding:10px 18px;">MACRO OBSERVABLES</td></tr>
+        <tr class="desk-input-section"><td colspan="2">Macro Observables</td></tr>
         <tr><td>Brent Crude</td><td>{'$' + format(inputs["brent"], '.2f') if inputs["brent"] is not None else 'Unavailable'}</td></tr>
         <tr><td>Dollar Index (DXY)</td><td>{format(inputs["dxy"], '.2f') if inputs["dxy"] is not None else 'Unavailable'}</td></tr>
         <tr><td>VIX (Fear Index)</td><td>{format(inputs["vix"], '.2f') if inputs["vix"] is not None else 'Unavailable'}</td></tr>
-        <tr><td colspan="2" style="font-weight:700;color:var(--brand);font-size:0.72rem;letter-spacing:0.1em;padding:10px 18px;">NIGERIAN FX STRUCTURE</td></tr>
+        <tr class="desk-input-section"><td colspan="2">Nigerian FX Structure</td></tr>
         <tr><td>Official CBN Rate</td><td>{official_display}</td></tr>
         <tr><td>Official-Parallel Gap</td><td>{gap_display}</td></tr>
         <tr><td>BTC Premium (Quidax)</td><td>{fmt_plain_pct(inputs["btc_premium_pct"]) if inputs["btc_premium_pct"] is not None else 'Unavailable'}</td></tr>
-        <tr><td colspan="2" style="font-weight:700;color:var(--brand);font-size:0.72rem;letter-spacing:0.1em;padding:10px 18px;">AFRICAN PEER CURRENCIES</td></tr>
+        <tr class="desk-input-section"><td colspan="2">African Peer Currencies</td></tr>
         <tr><td>USD/GHS (Ghana)</td><td>{ghs_display}</td></tr>
-        <tr><td colspan="2" style="font-weight:700;color:var(--brand);font-size:0.72rem;letter-spacing:0.1em;padding:10px 18px;">HUMAN + NEWS INTELLIGENCE</td></tr>
+        <tr class="desk-input-section"><td colspan="2">Human + News Intelligence</td></tr>
         <tr><td>Desk Notes</td><td>{escape(notes_text)}</td></tr>
         {news_row}
     </table>
@@ -1514,7 +1565,7 @@ def _render_news_feed():
             continue
         cat_label = category_labels.get(cat, cat)
         news_items_html.append(
-            f'<div style="margin-top:14px;margin-bottom:6px;">'
+            f'<div class="desk-news-cat-header">'
             f'<span class="desk-news-badge desk-news-badge-cat">{cat_label} ({len(cat_items)})</span></div>'
         )
         for item in cat_items:
@@ -1718,11 +1769,12 @@ def render_history():
         rows_html += f"<tr>{cells}</tr>"
     headers = "".join(f"<th>{escape(c)}</th>" for c in df.columns)
     st.markdown(
-        f"""<div class="desk-card" style="padding:0;max-height:420px;overflow-y:auto;">
+        f"""<div class="desk-signal-table-wrap">
+<div class="desk-signal-table-inner">
 <table class="desk-signal-table">
-<thead style="position:sticky;top:0;background:var(--panel);z-index:1;"><tr>{headers}</tr></thead>
+<thead style="position:sticky;top:0;z-index:1;"><tr>{headers}</tr></thead>
 <tbody>{rows_html}</tbody>
-</table></div>""",
+</table></div></div>""",
         unsafe_allow_html=True,
     )
 
@@ -1761,7 +1813,7 @@ def render_performance():
     pnl_val = f"{pnl:+.0f}" if n_eval > 0 else "awaiting"
     st.markdown(
         f"""
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+<div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;">
     <div class="desk-card" style="padding:14px 18px;">
         <div class="desk-card-label">Total Signals</div>
         <div style="font-size:1.3rem;font-weight:700;color:var(--ink);">{total}</div>
@@ -1965,12 +2017,13 @@ def render_macro_calendar():
   <style>
     :root {{
       --bg: transparent;
-      --panel: #fffdf8;
-      --ink: #16202b;
+      --panel: #ffffff;
+      --ink: #111111;
       --muted: #5f6b76;
-      --line: #ddd4c3;
+      --border: #111111;
+      --line: #e5e5e5;
       --brand: #123b63;
-      --accent: #b4492b;
+      --accent: #111111;
     }}
     * {{
       box-sizing: border-box;
@@ -1994,8 +2047,8 @@ def render_macro_calendar():
       margin-bottom: 1.85rem;
     }}
     .macro-col {{
-      background: rgba(255, 253, 248, 0.55);
-      border: 1px solid var(--line);
+      background: var(--section-bg, #f5f5f5);
+      border: none;
       border-radius: 18px;
       padding: 0.9rem 0.55rem 1.35rem;
       min-height: 100%;
@@ -2014,7 +2067,7 @@ def render_macro_calendar():
       width: 100%;
       height: 3.35rem;
       margin: 0 0 0.9rem;
-      border: 1px solid var(--line);
+      border: none;
       border-radius: 14px;
       background: var(--panel);
       color: var(--ink);
@@ -2025,12 +2078,10 @@ def render_macro_calendar():
       transition: background 120ms ease, border-color 120ms ease, color 120ms ease;
     }}
     .macro-day:hover {{
-      background: #f8f4ec;
-      border-color: #b8ac97;
+      background: #ffffff;
     }}
     .macro-day.is-active {{
-      background: #16202b;
-      border-color: #16202b;
+      background: var(--border);
       color: #fff;
     }}
     .macro-day-count {{
@@ -2051,7 +2102,7 @@ def render_macro_calendar():
       box-shadow: 0 0 0 2px var(--panel);
     }}
     .macro-day.is-active .macro-day-count {{
-      box-shadow: 0 0 0 2px #16202b;
+      box-shadow: 0 0 0 2px var(--border);
     }}
     .macro-banner {{
       font-size: 0.8rem;
@@ -2077,9 +2128,9 @@ def render_macro_calendar():
       margin-bottom: 10px;
       padding: 16px 20px;
       border-radius: 18px;
-      background: var(--panel);
-      border: 1px solid var(--line);
-      box-shadow: 0 20px 40px rgba(31, 42, 55, 0.06);
+      background: var(--section-bg, #f5f5f5);
+      border: none;
+      box-shadow: none;
     }}
     @media (max-width: 960px) {{
       .macro-grid {{
@@ -2210,11 +2261,11 @@ def render_methodology():
 <style>
 .method-toc a { color: var(--ink, #2c2c2c); text-decoration: none; }
 .method-toc a:hover { text-decoration: underline; }
-.method-toc { background: transparent; border-radius: 8px; padding: 18px 24px; margin-bottom: 28px; }
+.method-toc { background: var(--section-bg, #f5f5f5); border-radius: 24px; padding: 18px 24px; margin-bottom: 28px; }
 .method-section { margin-bottom: 32px; }
 .method-table { width: 100%; border-collapse: collapse; margin: 12px 0 18px 0; font-size: 0.92rem; }
-.method-table th { background: transparent; text-align: left; padding: 8px 12px; border-bottom: 2px solid #d4cfc7; font-weight: 600; }
-.method-table td { padding: 8px 12px; border-bottom: 1px solid #e8e4dd; }
+.method-table th { background: transparent; text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--line, #e5e5e5); font-weight: 600; }
+.method-table td { padding: 8px 12px; border-bottom: 1px solid var(--line, #e5e5e5); }
 .method-table tr:last-child td { border-bottom: none; }
 </style>
 
@@ -2650,13 +2701,10 @@ def main():
                         f"**{result.get('confidence') or 'monitor'}**"
                     )
                     st.divider()
-                col_l, col_r = st.columns(2)
-                with col_l:
-                    st.markdown("##### Signal History")
-                    render_history()
-                with col_r:
-                    st.markdown("##### This Month")
-                    render_performance()
+                st.markdown("##### Signal History")
+                render_history()
+                st.markdown("##### This Month")
+                render_performance()
             with tab_chart:
                 render_chart(result)
             with tab_drivers:
