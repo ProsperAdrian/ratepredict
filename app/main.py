@@ -32,7 +32,7 @@ from app.services.news_aggregator import NewsAggregatorService, format_news_for_
 WAT = timezone(timedelta(hours=1))
 
 st.set_page_config(
-    page_title="Quidax OTC Rate Intelligence",
+    page_title="USDT/NGN Predictor",
     page_icon="\u20a6",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -111,11 +111,32 @@ header[data-testid="stHeader"] button { z-index: 999 !important; }
 div[data-testid="stVerticalBlock"] > div:first-child > .desk-banner {
     margin-top: 0 !important;
 }
-section[data-testid="stSidebar"] > div:first-child { padding-top: 2rem !important; }
+section[data-testid="stSidebar"] > div:first-child { padding-top: 0 !important; }
 
 section[data-testid="stSidebar"] {
     background: #ffffff;
     border-right: 1px solid var(--line);
+}
+section[data-testid="stSidebar"] div[data-testid="stMarkdown"]:has(.desk-sidebar-title-row) {
+    margin: 0 !important;
+    padding: 0 !important;
+}
+.desk-sidebar-title-row {
+    display: flex;
+    align-items: center;
+    min-height: 2.35rem;
+    margin: 0 0 12px 0;
+    padding: 0 2.75rem 0 0.25rem;
+    box-sizing: border-box;
+}
+.desk-sidebar-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--ink);
+    margin: 0;
+    letter-spacing: -0.02em;
+    line-height: 1;
 }
 section[data-testid="stSidebar"] .stButton > button[kind="primary"] {
     border-radius: 16px !important;
@@ -1220,6 +1241,10 @@ def _apply_live_quotes(export_frame, live_quotes, settings):
 
 def render_sidebar():
     with st.sidebar:
+        st.markdown(
+            '<div class="desk-sidebar-title-row"><div class="desk-sidebar-title">Desk Controls</div></div>',
+            unsafe_allow_html=True,
+        )
         if st.button("Run Prediction", use_container_width=True, type="primary"):
             with st.spinner("Running prediction..."):
                 try:
@@ -1294,7 +1319,7 @@ def render_header(result: dict):
         f"""
 <div class="desk-banner">
     <div class="desk-kicker">Internal Desk Dashboard</div>
-    <div class="desk-title">Quidax USD/NGN Intelligence</div>
+    <div class="desk-title">USDT/NGN Predictor</div>
     <div class="desk-subtitle">
         Live quote, ensemble forecast, and a AI overlay for human intervention.
     </div>
