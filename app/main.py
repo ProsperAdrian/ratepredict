@@ -182,6 +182,19 @@ section[data-testid="stSidebar"] .stButton > button[kind="primary"] {
     box-shadow: none !important;
 }
 
+/* Hide any structural indicator that is a sibling to the tabs (catches all versions) */
+.stTabs [role="tablist"] > *:not(button):not([role="tab"]):not([data-testid="stTab"]):not([data-baseweb="tab"]),
+.stTabs [data-baseweb="tab-list"] > *:not(button):not([role="tab"]):not([data-testid="stTab"]):not([data-baseweb="tab"]),
+.stTabs [data-testid="stTabList"] > *:not(button):not([role="tab"]):not([data-testid="stTab"]):not([data-baseweb="tab"]) {
+    display: none !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    width: 0 !important;
+    height: 0 !important;
+    border: none !important;
+    background: transparent !important;
+}
+
 .stTabs [role="tablist"]::before,
 .stTabs [role="tablist"]::after,
 .stTabs [data-baseweb="tab-list"]::before,
