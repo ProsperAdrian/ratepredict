@@ -162,7 +162,8 @@ section[data-testid="stSidebar"] .stButton > button[kind="primary"] {
 }
 
 /* Reset everything in tabs to eliminate hidden borders/shadows */
-div[data-testid="stTabs"] {
+div[data-testid="stTabs"],
+.stTabs {
     background: transparent !important;
 }
 
@@ -170,7 +171,11 @@ div[data-testid="stTabs"] {
 div[data-testid="stTabs"] [data-baseweb="tab-highlight"],
 div[data-testid="stTabs"] [data-baseweb="tab-border"],
 div[data-testid="stTabs"] [data-testid="stTabIndicator"],
-div[data-testid="stTabs"] [role="tablist"] > div:not([role="tab"]) {
+div[data-testid="stTabs"] [role="tablist"] > div:not([role="tab"]),
+.stTabs [data-baseweb="tab-highlight"],
+.stTabs [data-baseweb="tab-border"],
+.stTabs [data-testid="stTabIndicator"],
+.stTabs [role="tablist"] > div:not([role="tab"]) {
     display: none !important;
     visibility: hidden !important;
     opacity: 0 !important;
@@ -183,8 +188,11 @@ div[data-testid="stTabs"] [role="tablist"] > div:not([role="tab"]) {
 /* Container for tabs */
 div[data-testid="stTabs"] [role="tablist"],
 div[data-testid="stTabs"] [data-baseweb="tab-list"],
-div[data-testid="stTabs"] [data-testid="stTabList"] {
-    gap: 8px !important;
+div[data-testid="stTabs"] [data-testid="stTabList"],
+.stTabs [role="tablist"],
+.stTabs [data-baseweb="tab-list"],
+.stTabs [data-testid="stTabList"] {
+    gap: 16px !important;
     border: none !important;
     border-bottom: none !important;
     background: transparent !important;
@@ -192,8 +200,9 @@ div[data-testid="stTabs"] [data-testid="stTabList"] {
 }
 
 /* Base button */
-div[data-testid="stTabs"] button[role="tab"] {
-    padding: 10px 20px !important;
+div[data-testid="stTabs"] button[role="tab"],
+.stTabs button[role="tab"] {
+    padding: 10px 24px !important;
     font-size: 0.85rem !important;
     font-weight: 600 !important;
     color: #5f6b76 !important;
@@ -206,12 +215,14 @@ div[data-testid="stTabs"] button[role="tab"] {
     overflow: hidden !important;
 }
 
-div[data-testid="stTabs"] button[role="tab"]:hover {
+div[data-testid="stTabs"] button[role="tab"]:hover,
+.stTabs button[role="tab"]:hover {
     color: #111111 !important;
 }
 
 /* Active tab */
-div[data-testid="stTabs"] button[role="tab"][aria-selected="true"] {
+div[data-testid="stTabs"] button[role="tab"][aria-selected="true"],
+.stTabs button[role="tab"][aria-selected="true"] {
     color: #ffffff !important;
     background-color: #111111 !important;
     background: #111111 !important;
@@ -220,7 +231,8 @@ div[data-testid="stTabs"] button[role="tab"][aria-selected="true"] {
 }
 
 /* Nuke text inner borders */
-div[data-testid="stTabs"] button[role="tab"] * {
+div[data-testid="stTabs"] button[role="tab"] *,
+.stTabs button[role="tab"] * {
     color: inherit !important;
     background: transparent !important;
     border: none !important;
@@ -229,11 +241,13 @@ div[data-testid="stTabs"] button[role="tab"] * {
 }
 
 /* Hover and Focus states */
-div[data-testid="stTabs"] button[role="tab"]:focus {
+div[data-testid="stTabs"] button[role="tab"]:focus,
+.stTabs button[role="tab"]:focus {
     outline: none !important;
     border: 2px solid transparent !important;
 }
-div[data-testid="stTabs"] button[role="tab"][aria-selected="true"]:focus {
+div[data-testid="stTabs"] button[role="tab"][aria-selected="true"]:focus,
+.stTabs button[role="tab"][aria-selected="true"]:focus {
     border: 2px solid #111111 !important;
 }
 
@@ -242,7 +256,10 @@ div[data-testid="stTabs"] button[role="tab"][aria-selected="true"]:focus {
 }
 div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div div[data-testid="stTabs"] [role="tablist"],
 div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div div[data-testid="stTabs"] [data-baseweb="tab-list"],
-div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div div[data-testid="stTabs"] [data-testid="stTabList"] {
+div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div div[data-testid="stTabs"] [data-testid="stTabList"],
+div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div .stTabs [role="tablist"],
+div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div .stTabs [data-baseweb="tab-list"],
+div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div .stTabs [data-testid="stTabList"] {
     position: sticky;
     top: 2.95rem;
     z-index: 80;
@@ -251,7 +268,9 @@ div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div div
     backdrop-filter: blur(10px);
 }
 div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div div[data-testid="stTabs"] [data-baseweb="tab-border"],
-div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div div[data-testid="stTabs"] [data-testid="stTabHighlight"] {
+div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div div[data-testid="stTabs"] [data-testid="stTabHighlight"],
+div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div .stTabs [data-baseweb="tab-border"],
+div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div .stTabs [data-testid="stTabHighlight"] {
     display: none !important;
 }
 div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div div[data-testid="stTabs"] [role="tablist"]::before,
@@ -259,7 +278,13 @@ div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div div
 div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div div[data-testid="stTabs"] [data-baseweb="tab-list"]::before,
 div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div div[data-testid="stTabs"] [data-baseweb="tab-list"]::after,
 div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div div[data-testid="stTabs"] [data-testid="stTabList"]::before,
-div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div div[data-testid="stTabs"] [data-testid="stTabList"]::after {
+div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div div[data-testid="stTabs"] [data-testid="stTabList"]::after,
+div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div .stTabs [role="tablist"]::before,
+div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div .stTabs [role="tablist"]::after,
+div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div .stTabs [data-baseweb="tab-list"]::before,
+div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div .stTabs [data-baseweb="tab-list"]::after,
+div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div .stTabs [data-testid="stTabList"]::before,
+div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div .stTabs [data-testid="stTabList"]::after {
     display: none !important;
     content: none !important;
 }
