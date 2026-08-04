@@ -448,6 +448,8 @@ section[data-testid="stSidebar"] > div {
     font-size: 1.15rem;
     color: var(--ink);
 }
+.desk-val-up { color: var(--up) !important; }
+.desk-val-down { color: var(--down) !important; }
 .desk-signal-up,
 .desk-signal-down,
 .desk-signal-neutral {
@@ -1437,18 +1439,25 @@ def render_rate_and_signal(result: dict):
             </div>
         </div>
     </div>
-    <div class="desk-card-row">
+    def get_color_class(val):
+        if val > 0: return " desk-val-up"
+        if val < 0: return " desk-val-down"
+        return ""
+
+    st.markdown(
+        f"""
+<div class="desk-card-row">
         <div class="desk-micro">
             <div class="desk-micro-label">Raw Model Return</div>
-            <div class="desk-micro-value">{fmt_return_pct(result["raw_forecast"])}</div>
+            <div class="desk-micro-value{get_color_class(result['raw_forecast'])}">{fmt_return_pct(result["raw_forecast"])}</div>
         </div>
         <div class="desk-micro">
             <div class="desk-micro-label">AI Overlay</div>
-            <div class="desk-micro-value">{fmt_bps(result["ai_adjustment_bps"])}</div>
+            <div class="desk-micro-value{get_color_class(result['ai_adjustment_bps'])}">{fmt_bps(result["ai_adjustment_bps"])}</div>
         </div>
         <div class="desk-micro">
             <div class="desk-micro-label">Adjusted Return</div>
-            <div class="desk-micro-value">{fmt_return_pct(result["adjusted_forecast"])}</div>
+            <div class="desk-micro-value{get_color_class(result['adjusted_forecast'])}">{fmt_return_pct(result["adjusted_forecast"])}</div>
         </div>
         <div class="desk-micro">
             <div class="desk-micro-label">2h Forecast Price</div>
@@ -1506,11 +1515,11 @@ def render_ai(result: dict):
         <div class="desk-math">
             <div class="desk-math-step">
                 <div class="desk-micro-label">Overlay Score</div>
-                <div class="desk-micro-value">{ai.sentiment_score:+.2f}</div>
+                <div class="desk-micro-value{get_color_class(ai.sentiment_score)}">{ai.sentiment_score:+.2f}</div>
             </div>
             <div class="desk-math-step">
                 <div class="desk-micro-label">Applied to Model</div>
-                <div class="desk-micro-value">{fmt_bps(result["ai_adjustment_bps"])}</div>
+                <div class="desk-micro-value{get_color_class(result['ai_adjustment_bps'])}">{fmt_bps(result["ai_adjustment_bps"])}</div>
             </div>
             <div class="desk-math-step">
                 <div class="desk-micro-label">Event Magnitude</div>
