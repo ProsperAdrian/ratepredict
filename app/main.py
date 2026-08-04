@@ -161,7 +161,7 @@ section[data-testid="stSidebar"] .stButton > button[kind="primary"] {
     color: var(--muted) !important;
 }
 
-/* Streamlit Tabs Styling */
+/* Streamlit Tabs Styling & Reset */
 [data-testid="stTabs"],
 [data-testid="stTabList"],
 [data-baseweb="tab-list"],
@@ -176,7 +176,7 @@ section[data-testid="stSidebar"] .stButton > button[kind="primary"] {
     box-shadow: none !important;
 }
 
-/* Hide tab underline, active indicator highlight, tab border */
+/* Hide tab active underline / highlight bar / border elements */
 [data-baseweb="tab-highlight"],
 [data-testid="stTabHighlight"],
 [data-baseweb="tab-border"],
@@ -188,7 +188,10 @@ div[data-testid="stTabBorder"],
 [role="tablist"] > div:not([role="tab"]):not(button),
 [data-baseweb="tab-list"] > div:not([role="tab"]):not(button),
 [data-testid="stTabList"] > div:not([role="tab"]):not(button),
-hr {
+[role="tablist"] > div[style*="position"],
+[role="tablist"] > div[style*="bottom"],
+[data-baseweb="tab-list"] > div[style*="position"],
+[data-baseweb="tab-list"] > div[style*="bottom"] {
     display: none !important;
     height: 0 !important;
     min-height: 0 !important;
@@ -201,6 +204,46 @@ hr {
     opacity: 0 !important;
     visibility: hidden !important;
     pointer-events: none !important;
+}
+
+/* Global Reset on all children & pseudo-elements inside tabs to kill underlines/borders */
+[data-testid="stTabs"] *,
+[data-testid="stTabs"] *::before,
+[data-testid="stTabs"] *::after,
+.stTabs *,
+.stTabs *::before,
+.stTabs *::after,
+[role="tablist"] *,
+[role="tablist"] *::before,
+[role="tablist"] *::after {
+    border-bottom: none !important;
+    border-top: none !important;
+    box-shadow: none !important;
+    text-decoration: none !important;
+}
+
+[role="tablist"]::before,
+[role="tablist"]::after,
+[data-testid="stTabList"]::before,
+[data-testid="stTabList"]::after,
+[data-baseweb="tab-list"]::before,
+[data-baseweb="tab-list"]::after,
+[role="tab"]::before,
+[role="tab"]::after,
+[data-testid="stTab"]::before,
+[data-testid="stTab"]::after,
+[data-baseweb="tab"]::before,
+[data-baseweb="tab"]::after,
+button[role="tab"]::before,
+button[role="tab"]::after {
+    display: none !important;
+    content: none !important;
+    height: 0 !important;
+    width: 0 !important;
+    border: none !important;
+    border-bottom: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
 }
 
 /* Inactive Tab Buttons */
@@ -232,6 +275,7 @@ button[role="tab"] * {
     border-radius: 999px !important;
     border: none !important;
     border-bottom: none !important;
+    box-shadow: none !important;
     text-decoration: none !important;
 }
 
@@ -258,28 +302,8 @@ button[role="tab"][aria-selected="true"] *,
     color: #ffffff !important;
     border: none !important;
     border-bottom: none !important;
-    text-decoration: none !important;
-}
-
-/* Suppress pseudo-elements on tab elements */
-[role="tablist"]::before,
-[role="tablist"]::after,
-[data-testid="stTabList"]::before,
-[data-testid="stTabList"]::after,
-[data-baseweb="tab-list"]::before,
-[data-baseweb="tab-list"]::after,
-[role="tab"]::before,
-[role="tab"]::after,
-[data-testid="stTab"]::before,
-[data-testid="stTab"]::after,
-[data-baseweb="tab"]::before,
-[data-baseweb="tab"]::after {
-    display: none !important;
-    content: none !important;
-    border: none !important;
-    border-bottom: none !important;
     box-shadow: none !important;
-    background: transparent !important;
+    text-decoration: none !important;
 }
 
 /* Sticky Header for Top Section Tabs */
@@ -292,7 +316,7 @@ div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div [ro
     position: sticky;
     top: 2.95rem;
     z-index: 80;
-    padding: 0.5rem 0 0.9rem;
+    padding: 4px 0 !important;
     margin-bottom: 0.6rem;
     background: rgba(255, 255, 255, 0.96) !important;
     backdrop-filter: blur(10px);
@@ -305,6 +329,7 @@ div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div [da
 div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div [data-baseweb="tab-highlight"],
 div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div [data-testid="stTabHighlight"] {
     display: none !important;
+    height: 0 !important;
 }
 
 [data-testid="stDataFrame"] {
