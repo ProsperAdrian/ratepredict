@@ -161,207 +161,105 @@ section[data-testid="stSidebar"] .stButton > button[kind="primary"] {
     color: var(--muted) !important;
 }
 
-.stTabs,
-.stTabs > div,
-.stTabs [role="tablist"],
-.stTabs [data-baseweb="tab-list"],
-.stTabs [data-testid="stTabList"],
-.stTabs > div > div {
+/* Reset everything in tabs to eliminate hidden borders/shadows */
+div[data-testid="stTabs"] {
     background: transparent !important;
-    background-color: transparent !important;
 }
 
-/* Tab list / bar container */
-.stTabs [role="tablist"],
-.stTabs [data-baseweb="tab-list"],
-.stTabs [data-testid="stTabList"] {
-    gap: 10px !important;
-    border: none !important;
-    border-bottom: none !important;
-    margin-bottom: 10px !important;
-    box-shadow: none !important;
-}
-
-/* Hide any structural indicator that is a sibling to the tabs (catches all versions) */
-.stTabs [role="tablist"] > *:not(button):not([role="tab"]):not([data-testid="stTab"]):not([data-baseweb="tab"]),
-.stTabs [data-baseweb="tab-list"] > *:not(button):not([role="tab"]):not([data-testid="stTab"]):not([data-baseweb="tab"]),
-.stTabs [data-testid="stTabList"] > *:not(button):not([role="tab"]):not([data-testid="stTab"]):not([data-baseweb="tab"]) {
+/* Hide ALL structural underline elements */
+div[data-testid="stTabs"] [data-baseweb="tab-highlight"],
+div[data-testid="stTabs"] [data-baseweb="tab-border"],
+div[data-testid="stTabs"] [data-testid="stTabIndicator"],
+div[data-testid="stTabs"] [role="tablist"] > div:not([role="tab"]) {
     display: none !important;
-    opacity: 0 !important;
     visibility: hidden !important;
-    width: 0 !important;
-    height: 0 !important;
-    border: none !important;
-    background-color: #ffffff !important;
-    background: #ffffff !important;
-    color: #ffffff !important;
-}
-
-.stTabs [role="tablist"]::before,
-.stTabs [role="tablist"]::after,
-.stTabs [data-baseweb="tab-list"]::before,
-.stTabs [data-baseweb="tab-list"]::after,
-.stTabs [data-testid="stTabList"]::before,
-.stTabs [data-testid="stTabList"]::after {
-    display: none !important;
-    content: none !important;
-    border-color: #ffffff !important;
-    background-color: #ffffff !important;
-    background: #ffffff !important;
-    box-shadow: none !important;
-}
-
-/* Underline / highlight / border elements */
-.stTabs [data-baseweb="tab-border"],
-.stTabs [data-baseweb="tab-highlight"],
-.stTabs [data-testid="stTabHighlight"],
-.stTabs [data-testid="stTabBorder"],
-.stTabs [data-testid="stTabFollowUp"],
-.stTabs [data-testid="stTabIndicator"],
-.stTabs span[data-testid="stTabIndicator"],
-.stTabs div[data-testid="stTabIndicator"] {
-    display: none !important;
+    opacity: 0 !important;
     height: 0 !important;
     width: 0 !important;
-    border-color: #ffffff !important;
-    background-color: #ffffff !important;
-    background: #ffffff !important;
-    color: #ffffff !important;
-}
-
-/* Individual tab buttons - base styling for all tabs */
-.stTabs [role="tab"],
-.stTabs [data-baseweb="tab"],
-.stTabs [data-testid="stTab"],
-.stTabs button[role="tab"],
-.stTabs [data-baseweb="tab"] button,
-.stTabs [data-testid="stTab"] button {
-    padding: 8px 18px !important;
-    font-size: 0.84rem !important;
-    font-weight: 600 !important;
-    color: var(--muted) !important;
-    border: none !important;
-    border-bottom: 2px solid #ffffff !important;
-    outline: none !important;
-    background: transparent !important;
     background-color: transparent !important;
-    border-radius: 999px !important;
-    box-shadow: none !important;
-    text-decoration: none !important;
-    transition: all 0.15s ease-in-out !important;
+    background: transparent !important;
 }
 
-/* Remove underlines/borders on inner text/paragraphs/spans inside tabs */
-.stTabs [role="tab"] *,
-.stTabs [data-baseweb="tab"] *,
-.stTabs [data-testid="stTab"] * {
+/* Container for tabs */
+div[data-testid="stTabs"] [role="tablist"],
+div[data-testid="stTabs"] [data-baseweb="tab-list"],
+div[data-testid="stTabs"] [data-testid="stTabList"] {
+    gap: 8px !important;
     border: none !important;
     border-bottom: none !important;
-    border-bottom-color: #ffffff !important;
-    text-decoration: none !important;
-    box-shadow: none !important;
+    background: transparent !important;
+    margin-bottom: 12px !important;
 }
 
-/* Selected active tab button */
-.stTabs [role="tab"][aria-selected="true"],
-.stTabs [data-baseweb="tab"][aria-selected="true"],
-.stTabs [data-testid="stTab"][aria-selected="true"],
-.stTabs button[role="tab"][aria-selected="true"],
-.stTabs [data-baseweb="tab"][aria-selected="true"] button,
-.stTabs [data-testid="stTab"][aria-selected="true"] button,
-.stTabs [aria-selected="true"] {
+/* Base button */
+div[data-testid="stTabs"] button[role="tab"] {
+    padding: 10px 20px !important;
+    font-size: 0.85rem !important;
+    font-weight: 600 !important;
+    color: #5f6b76 !important;
+    background-color: transparent !important;
+    background: transparent !important;
+    border-radius: 9999px !important;
+    margin: 0 !important;
+    border: 2px solid transparent !important;
+    box-shadow: none !important;
+    overflow: hidden !important;
+}
+
+div[data-testid="stTabs"] button[role="tab"]:hover {
+    color: #111111 !important;
+}
+
+/* Active tab */
+div[data-testid="stTabs"] button[role="tab"][aria-selected="true"] {
     color: #ffffff !important;
-    border: none !important;
-    border-bottom: 2px solid #ffffff !important;
-    border-bottom-color: #ffffff !important;
-    outline: none !important;
-    background: #111111 !important;
     background-color: #111111 !important;
-    border-radius: 999px !important;
-    box-shadow: none !important;
-    text-decoration: none !important;
-}
-
-/* Text elements inside selected active tab */
-.stTabs [role="tab"][aria-selected="true"] *,
-.stTabs [data-baseweb="tab"][aria-selected="true"] *,
-.stTabs [data-testid="stTab"][aria-selected="true"] *,
-.stTabs [aria-selected="true"] p,
-.stTabs [aria-selected="true"] span,
-.stTabs [aria-selected="true"] div {
-    color: #ffffff !important;
-    text-decoration: none !important;
-    border-bottom: none !important;
-    border-bottom-color: #ffffff !important;
+    background: #111111 !important;
+    border: 2px solid #111111 !important;
     box-shadow: none !important;
 }
 
-/* Pseudo-elements on individual tabs */
-.stTabs [role="tab"]::before,
-.stTabs [role="tab"]::after,
-.stTabs [data-baseweb="tab"]::before,
-.stTabs [data-baseweb="tab"]::after,
-.stTabs [data-testid="stTab"]::before,
-.stTabs [data-testid="stTab"]::after,
-.stTabs [aria-selected="true"]::before,
-.stTabs [aria-selected="true"]::after {
-    display: none !important;
-    content: none !important;
+/* Nuke text inner borders */
+div[data-testid="stTabs"] button[role="tab"] * {
+    color: inherit !important;
+    background: transparent !important;
     border: none !important;
-    border-bottom: none !important;
     box-shadow: none !important;
+    text-decoration: none !important;
 }
 
 /* Hover and Focus states */
-.stTabs [role="tab"]:hover,
-.stTabs [data-baseweb="tab"]:hover,
-.stTabs [data-testid="stTab"]:hover {
-    color: var(--ink) !important;
-    border: none !important;
-    border-bottom: none !important;
-    text-decoration: none !important;
-}
-
-.stTabs [role="tab"][aria-selected="true"]:hover,
-.stTabs [data-baseweb="tab"][aria-selected="true"]:hover,
-.stTabs [data-testid="stTab"][aria-selected="true"]:hover {
-    color: #ffffff !important;
-}
-
-.stTabs [role="tab"]:focus,
-.stTabs [data-baseweb="tab"]:focus,
-.stTabs [data-testid="stTab"]:focus {
+div[data-testid="stTabs"] button[role="tab"]:focus {
     outline: none !important;
-    border: none !important;
-    box-shadow: none !important;
+    border: 2px solid transparent !important;
+}
+div[data-testid="stTabs"] button[role="tab"][aria-selected="true"]:focus {
+    border: 2px solid #111111 !important;
 }
 
 .top-section-tabs-anchor {
     height: 0;
 }
-div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div .stTabs [role="tablist"],
-div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div .stTabs [data-baseweb="tab-list"],
-div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div .stTabs [data-testid="stTabList"] {
+div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div div[data-testid="stTabs"] [role="tablist"],
+div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div div[data-testid="stTabs"] [data-baseweb="tab-list"],
+div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div div[data-testid="stTabs"] [data-testid="stTabList"] {
     position: sticky;
     top: 2.95rem;
     z-index: 80;
     padding: 0.5rem 0 0.9rem;
-    margin-bottom: 0.6rem;
     background: rgba(255, 255, 255, 0.96) !important;
     backdrop-filter: blur(10px);
-    border-bottom: none !important;
-    box-shadow: none !important;
 }
-div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div .stTabs [data-baseweb="tab-border"],
-div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div .stTabs [data-testid="stTabHighlight"] {
+div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div div[data-testid="stTabs"] [data-baseweb="tab-border"],
+div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div div[data-testid="stTabs"] [data-testid="stTabHighlight"] {
     display: none !important;
 }
-div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div .stTabs [role="tablist"]::before,
-div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div .stTabs [role="tablist"]::after,
-div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div .stTabs [data-baseweb="tab-list"]::before,
-div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div .stTabs [data-baseweb="tab-list"]::after,
-div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div .stTabs [data-testid="stTabList"]::before,
-div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div .stTabs [data-testid="stTabList"]::after {
+div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div div[data-testid="stTabs"] [role="tablist"]::before,
+div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div div[data-testid="stTabs"] [role="tablist"]::after,
+div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div div[data-testid="stTabs"] [data-baseweb="tab-list"]::before,
+div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div div[data-testid="stTabs"] [data-baseweb="tab-list"]::after,
+div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div div[data-testid="stTabs"] [data-testid="stTabList"]::before,
+div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div div[data-testid="stTabs"] [data-testid="stTabList"]::after {
     display: none !important;
     content: none !important;
 }
