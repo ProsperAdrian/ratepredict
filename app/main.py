@@ -161,21 +161,47 @@ section[data-testid="stSidebar"] .stButton > button[kind="primary"] {
     color: var(--muted) !important;
 }
 
+.stTabs,
+.stTabs *,
+.stTabs *::before,
+.stTabs *::after {
+    border-bottom: none !important;
+    text-decoration: none !important;
+}
+
 .stTabs [data-baseweb="tab-list"],
 .stTabs [data-testid="stTabList"],
 .stTabs [role="tablist"] {
     gap: 10px !important;
+    border: none !important;
     border-bottom: none !important;
     margin-bottom: 10px !important;
     background: transparent !important;
     background-color: transparent !important;
+    box-shadow: none !important;
 }
+
 .stTabs [data-baseweb="tab-border"],
 .stTabs [data-testid="stTabBorder"],
 .stTabs [data-baseweb="tab-highlight"],
-.stTabs [data-testid="stTabHighlight"] {
+.stTabs [data-testid="stTabHighlight"],
+.stTabs [role="tablist"] > div:not([role="tab"]):not(button),
+.stTabs [data-baseweb="tab-list"] > div:not([role="tab"]):not(button),
+.stTabs hr {
     display: none !important;
+    height: 0 !important;
+    min-height: 0 !important;
+    max-height: 0 !important;
+    width: 0 !important;
+    border: none !important;
+    border-bottom: none !important;
+    background: transparent !important;
+    background-color: transparent !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
 }
+
 .stTabs,
 .stTabs > div,
 .stTabs [role="tablist"],
@@ -184,7 +210,10 @@ section[data-testid="stSidebar"] .stButton > button[kind="primary"] {
 .stTabs > div > div {
     background: transparent !important;
     background-color: transparent !important;
+    box-shadow: none !important;
+    border: none !important;
 }
+
 .stTabs [data-baseweb="tab"],
 .stTabs [data-testid="stTab"],
 .stTabs [role="tab"],
@@ -195,45 +224,61 @@ section[data-testid="stSidebar"] .stButton > button[kind="primary"] {
     font-weight: 600 !important;
     color: var(--muted) !important;
     border: none !important;
+    border-bottom: none !important;
     background: transparent !important;
     background-color: transparent !important;
     border-radius: 999px !important;
     box-shadow: none !important;
     outline: none !important;
+    text-decoration: none !important;
     transition: all 0.15s ease-in-out;
 }
+
 .stTabs [data-baseweb="tab"] *,
 .stTabs [data-testid="stTab"] *,
-.stTabs [role="tab"] * {
+.stTabs [role="tab"] *,
+.stTabs button[role="tab"] * {
     border-radius: 999px !important;
+    border: none !important;
+    border-bottom: none !important;
+    text-decoration: none !important;
 }
+
 .stTabs [aria-selected="true"],
 .stTabs [data-baseweb="tab"][aria-selected="true"],
 .stTabs [data-testid="stTab"][aria-selected="true"],
 .stTabs button[role="tab"][aria-selected="true"] {
     color: #ffffff !important;
     border: none !important;
-    background: var(--border) !important;
-    background-color: var(--border) !important;
+    border-bottom: none !important;
+    background: var(--border, #111111) !important;
+    background-color: var(--border, #111111) !important;
     border-radius: 999px !important;
     box-shadow: none !important;
+    outline: none !important;
 }
+
 .stTabs [aria-selected="true"] *,
 .stTabs [data-baseweb="tab"][aria-selected="true"] *,
-.stTabs [data-testid="stTab"][aria-selected="true"] * {
+.stTabs [data-testid="stTab"][aria-selected="true"] *,
+.stTabs button[role="tab"][aria-selected="true"] * {
     color: #ffffff !important;
+    border: none !important;
+    text-decoration: none !important;
 }
-.stTabs [data-baseweb="tab-list"]::after,
-.stTabs [data-testid="stTabList"]::after,
-.stTabs [role="tablist"]::after,
-.stTabs [data-baseweb="tab"]::after,
-.stTabs [data-testid="stTab"]::after,
-.stTabs [role="tab"]::after,
-.stTabs [aria-selected="true"]::after {
+
+.stTabs ::before,
+.stTabs ::after,
+.stTabs *::before,
+.stTabs *::after {
     display: none !important;
+    content: none !important;
+    border: none !important;
     border-bottom: none !important;
     box-shadow: none !important;
+    background: transparent !important;
 }
+
 .top-section-tabs-anchor {
     height: 0;
 }
@@ -247,6 +292,7 @@ div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div .st
     margin-bottom: 0.6rem;
     background: rgba(255, 255, 255, 0.96) !important;
     backdrop-filter: blur(10px);
+    border: none !important;
     border-bottom: none !important;
     box-shadow: none !important;
 }
