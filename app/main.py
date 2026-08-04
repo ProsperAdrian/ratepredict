@@ -1419,6 +1419,11 @@ def render_rate_and_signal(result: dict):
         },
     }
     signal_ui = signal_map[signal]
+    def get_color_class(val):
+        if val > 0: return " desk-val-up"
+        if val < 0: return " desk-val-down"
+        return ""
+
     st.markdown(
         f"""
 <div class="desk-card {signal_ui["tone"]}" style="margin-bottom:56px;">
@@ -1428,25 +1433,18 @@ def render_rate_and_signal(result: dict):
             <h3>{escape(signal_ui["label"])}</h3>
             <div class="desk-card-value">{fmt(result["live_last"])}</div>
             <div class="desk-card-meta">
-                Bid {fmt(result["live_bid"])} · Ask {fmt(result["live_ask"])} · Spread {fmt(result["spread"])}
+                Bid {fmt(result["live_bid"])} · Ask {fmt(result["live_ask"])} · Spread <span class="{get_color_class(result['spread']).strip()}">{fmt(result["spread"])}</span>
             </div>
         </div>
         <div style="max-width:420px;">
             <div class="desk-card-label">Desk Read</div>
             <div style="font-size:1rem;color:var(--ink);font-weight:600;">{escape(signal_ui["action"])}</div>
             <div class="desk-card-meta">
-                24h move {fmt_plain_pct(result["change_24h_pct"])} · Confidence {escape(result["confidence"] or "monitor")} ({result.get("confidence_score", 0)}%)
+                24h move <span class="{get_color_class(result['change_24h_pct']).strip()}">{fmt_plain_pct(result["change_24h_pct"])}</span> · Confidence {escape(result["confidence"] or "monitor")} ({result.get("confidence_score", 0)}%)
             </div>
         </div>
     </div>
-    def get_color_class(val):
-        if val > 0: return " desk-val-up"
-        if val < 0: return " desk-val-down"
-        return ""
-
-    st.markdown(
-        f"""
-<div class="desk-card-row">
+    <div class="desk-card-row">
         <div class="desk-micro">
             <div class="desk-micro-label">Raw Model Return</div>
             <div class="desk-micro-value{get_color_class(result['raw_forecast'])}">{fmt_return_pct(result["raw_forecast"])}</div>
