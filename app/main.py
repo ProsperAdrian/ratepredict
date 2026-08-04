@@ -200,11 +200,15 @@ section[data-testid="stSidebar"] .stButton > button[kind="primary"] {
 .stTabs [data-baseweb="tab-highlight"],
 .stTabs [data-testid="stTabHighlight"],
 .stTabs [data-testid="stTabBorder"],
-.stTabs [data-testid="stTabFollowUp"] {
+.stTabs [data-testid="stTabFollowUp"],
+.stTabs [data-testid="stTabIndicator"],
+.stTabs span[data-testid="stTabIndicator"],
+.stTabs div[data-testid="stTabIndicator"] {
     display: none !important;
     height: 0 !important;
     width: 0 !important;
     border: none !important;
+    border-bottom: none !important;
     background: transparent !important;
 }
 
@@ -268,6 +272,8 @@ section[data-testid="stSidebar"] .stButton > button[kind="primary"] {
 .stTabs [aria-selected="true"] div {
     color: #ffffff !important;
     text-decoration: none !important;
+    border-bottom: none !important;
+    box-shadow: none !important;
 }
 
 /* Pseudo-elements on individual tabs */
