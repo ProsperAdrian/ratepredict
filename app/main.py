@@ -161,196 +161,68 @@ section[data-testid="stSidebar"] .stButton > button[kind="primary"] {
     color: var(--muted) !important;
 }
 
-/* Streamlit Tabs Styling & Reset */
-[data-testid="stTabs"],
-[data-testid="stTabList"],
-[data-baseweb="tab-list"],
-[role="tablist"],
-.stTabs {
-    gap: 10px !important;
-    border: none !important;
+.stTabs [data-baseweb="tab-list"] {
+    gap: 10px;
     border-bottom: none !important;
-    margin-bottom: 10px !important;
+    margin-bottom: 10px;
     background: transparent !important;
-    background-color: transparent !important;
-    box-shadow: none !important;
 }
-
-/* Bulletproof removal of active tab underline (TabHighlight) & bottom border (TabBorder) */
-.stTabs [role="tablist"] div:not(button *):not([role="tab"]):not([role="tab"] *),
-.stTabs [data-testid="stTabList"] div:not(button *):not([role="tab"]):not([role="tab"] *),
-.stTabs [data-baseweb="tab-list"] div:not(button *):not([role="tab"]):not([role="tab"] *),
-[data-testid="stTabs"] [role="tablist"] div:not(button *):not([role="tab"]):not([role="tab"] *),
-[data-testid="stTabs"] [data-testid="stTabList"] div:not(button *):not([role="tab"]):not([role="tab"] *),
-[data-testid="stTabs"] [data-baseweb="tab-list"] div:not(button *):not([role="tab"]):not([role="tab"] *),
-[role="tablist"] div:not(button *):not([role="tab"]):not([role="tab"] *),
-[data-testid="stTabList"] div:not(button *):not([role="tab"]):not([role="tab"] *),
-[data-baseweb="tab-list"] div:not(button *):not([role="tab"]):not([role="tab"] *),
-[data-baseweb="tab-highlight"],
-[data-testid="stTabHighlight"],
-[data-baseweb="tab-border"],
-[data-testid="stTabBorder"],
-div[data-baseweb="tab-highlight"],
-div[data-testid="stTabHighlight"],
-div[data-baseweb="tab-border"],
-div[data-testid="stTabBorder"],
-div[class*="TabHighlight"],
-div[class*="StyledTabHighlight"],
-div[class*="TabBorder"],
-div[class*="StyledTabBorder"],
-[role="tablist"] > div[style*="position"],
-[role="tablist"] > div[style*="bottom"],
-[data-baseweb="tab-list"] > div[style*="position"],
-[data-baseweb="tab-list"] > div[style*="bottom"] {
+.stTabs [data-baseweb="tab-border"] {
     display: none !important;
-    height: 0 !important;
-    min-height: 0 !important;
-    max-height: 0 !important;
-    width: 0 !important;
-    border: none !important;
-    border-bottom: none !important;
+}
+.stTabs,
+.stTabs > div,
+.stTabs [role="tablist"],
+.stTabs > div > div {
     background: transparent !important;
     background-color: transparent !important;
-    opacity: 0 !important;
-    visibility: hidden !important;
-    pointer-events: none !important;
 }
-
-/* Global Reset on pseudo-elements inside tabs */
-.stTabs *,
-.stTabs *::before,
-.stTabs *::after,
-[data-testid="stTabs"] *,
-[data-testid="stTabs"] *::before,
-[data-testid="stTabs"] *::after,
-[role="tablist"] *,
-[role="tablist"] *::before,
-[role="tablist"] *::after,
-[role="tab"] *::before,
-[role="tab"] *::after {
-    border-bottom: none !important;
-    border-top: none !important;
+.stTabs [data-baseweb="tab"] {
+    padding: 10px 18px;
+    font-size: 0.84rem;
+    font-weight: 600;
+    color: var(--muted);
+    border: none;
+    background: transparent;
+    border-radius: 999px;
     box-shadow: none !important;
-    text-decoration: none !important;
 }
-
-[role="tablist"]::before,
-[role="tablist"]::after,
-[data-testid="stTabList"]::before,
-[data-testid="stTabList"]::after,
-[data-baseweb="tab-list"]::before,
-[data-baseweb="tab-list"]::after,
-[role="tab"]::before,
-[role="tab"]::after,
-[data-testid="stTab"]::before,
-[data-testid="stTab"]::after,
-[data-baseweb="tab"]::before,
-[data-baseweb="tab"]::after,
-button[role="tab"]::before,
-button[role="tab"]::after {
-    display: none !important;
-    content: none !important;
-    height: 0 !important;
-    width: 0 !important;
-    border: none !important;
-    border-bottom: none !important;
-    box-shadow: none !important;
-    background: transparent !important;
-}
-
-/* Inactive Tab Buttons */
-[data-testid="stTab"],
-[data-baseweb="tab"],
-[role="tab"],
-button[role="tab"],
-button[data-testid="stTab"] {
-    padding: 8px 20px !important;
-    font-size: 0.84rem !important;
-    font-weight: 600 !important;
-    color: var(--muted, #5f6b76) !important;
-    border: none !important;
-    border-bottom: none !important;
-    border-top: none !important;
-    border-left: none !important;
-    border-right: none !important;
-    background: transparent !important;
-    background-color: transparent !important;
-    border-radius: 999px !important;
-    box-shadow: none !important;
-    outline: none !important;
-    text-decoration: none !important;
-    background-image: none !important;
-    transition: all 0.15s ease-in-out;
-}
-
-/* Children inside Tab Buttons */
-[data-testid="stTab"] *,
-[data-baseweb="tab"] *,
-[role="tab"] *,
-button[role="tab"] * {
-    border-radius: 999px !important;
-    border: none !important;
-    border-bottom: none !important;
-    box-shadow: none !important;
-    text-decoration: none !important;
-}
-
-/* Active Selected Tab Button (Black Capsule Pill) */
-[role="tab"][aria-selected="true"],
-button[role="tab"][aria-selected="true"],
-[data-testid="stTab"][aria-selected="true"],
-[data-baseweb="tab"][aria-selected="true"] {
+.stTabs [aria-selected="true"] {
     color: #ffffff !important;
     border: none !important;
-    border-bottom: none !important;
-    border-top: none !important;
-    border-left: none !important;
-    border-right: none !important;
-    background: #111111 !important;
-    background-color: #111111 !important;
-    border-radius: 999px !important;
+    background: var(--border) !important;
     box-shadow: none !important;
-    outline: none !important;
-    text-decoration: none !important;
-    background-image: none !important;
 }
-
-/* Active Selected Tab Children */
-[role="tab"][aria-selected="true"] *,
-button[role="tab"][aria-selected="true"] *,
-[data-testid="stTab"][aria-selected="true"] *,
-[data-baseweb="tab"][aria-selected="true"] * {
-    color: #ffffff !important;
-    border: none !important;
+.stTabs [data-baseweb="tab-highlight"] {
+    display: none !important;
+}
+.stTabs [data-baseweb="tab-list"]::after,
+.stTabs [data-baseweb="tab"]::after,
+.stTabs [aria-selected="true"]::after {
+    display: none !important;
     border-bottom: none !important;
     box-shadow: none !important;
-    text-decoration: none !important;
 }
-
-/* Sticky Header for Top Section Tabs */
 .top-section-tabs-anchor {
     height: 0;
 }
-div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div [data-baseweb="tab-list"],
-div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div [data-testid="stTabList"],
-div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div [role="tablist"] {
+div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div .stTabs [data-baseweb="tab-list"] {
     position: sticky;
     top: 2.95rem;
     z-index: 80;
-    padding: 4px 0 !important;
+    padding: 0.5rem 0 0.9rem;
     margin-bottom: 0.6rem;
     background: rgba(255, 255, 255, 0.96) !important;
     backdrop-filter: blur(10px);
-    border: none !important;
     border-bottom: none !important;
     box-shadow: none !important;
 }
-div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div [data-baseweb="tab-border"],
-div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div [data-testid="stTabBorder"],
-div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div [data-baseweb="tab-highlight"],
-div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div [data-testid="stTabHighlight"] {
+div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div .stTabs [data-baseweb="tab-border"] {
     display: none !important;
-    height: 0 !important;
+}
+div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div .stTabs [data-baseweb="tab-list"]::before,
+div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div .stTabs [data-baseweb="tab-list"]::after {
+    display: none !important;
 }
 
 [data-testid="stDataFrame"] {
