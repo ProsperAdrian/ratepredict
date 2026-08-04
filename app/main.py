@@ -254,18 +254,29 @@ div[data-testid="stTabs"] button[role="tab"][aria-selected="true"]:focus,
 .top-section-tabs-anchor {
     height: 0;
 }
-div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div div[data-testid="stTabs"] [role="tablist"],
-div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div div[data-testid="stTabs"] [data-baseweb="tab-list"],
-div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div div[data-testid="stTabs"] [data-testid="stTabList"],
-div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div .stTabs [role="tablist"],
-div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div .stTabs [data-baseweb="tab-list"],
-div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div .stTabs [data-testid="stTabList"] {
-    position: sticky;
-    top: 2.95rem;
-    z-index: 80;
-    padding: 0.5rem 0 0.9rem;
-    background: rgba(255, 255, 255, 0.96) !important;
-    backdrop-filter: blur(10px);
+/* Apply sticky header ONLY to the top tabs wrapper */
+div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div[data-testid="stTabs"] > div:first-child,
+div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div.stTabs > div:first-child,
+div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div > div[data-testid="stTabs"] > div:first-child,
+div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div > .stTabs > div:first-child {
+    position: sticky !important;
+    top: 2.95rem !important;
+    z-index: 80 !important;
+    padding: 0.5rem 0 0.9rem !important;
+    background-color: rgba(255, 255, 255, 0.98) !important;
+    background: rgba(255, 255, 255, 0.98) !important;
+    backdrop-filter: blur(10px) !important;
+}
+
+/* Ensure inner tabs DO NOT get sticky and definitely have no background */
+div[data-testid="stTabs"] div[data-testid="stTabs"] > div:first-child,
+.stTabs .stTabs > div:first-child {
+    position: static !important;
+    top: auto !important;
+    background: transparent !important;
+    background-color: transparent !important;
+    padding: 0 !important;
+    backdrop-filter: none !important;
 }
 div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div div[data-testid="stTabs"] [data-baseweb="tab-border"],
 div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div div[data-testid="stTabs"] [data-testid="stTabHighlight"],
