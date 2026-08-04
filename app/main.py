@@ -192,7 +192,9 @@ section[data-testid="stSidebar"] .stButton > button[kind="primary"] {
     width: 0 !important;
     height: 0 !important;
     border: none !important;
-    background: transparent !important;
+    background-color: #ffffff !important;
+    background: #ffffff !important;
+    color: #ffffff !important;
 }
 
 .stTabs [role="tablist"]::before,
@@ -203,8 +205,9 @@ section[data-testid="stSidebar"] .stButton > button[kind="primary"] {
 .stTabs [data-testid="stTabList"]::after {
     display: none !important;
     content: none !important;
-    border: none !important;
-    border-bottom: none !important;
+    border-color: #ffffff !important;
+    background-color: #ffffff !important;
+    background: #ffffff !important;
     box-shadow: none !important;
 }
 
@@ -220,9 +223,10 @@ section[data-testid="stSidebar"] .stButton > button[kind="primary"] {
     display: none !important;
     height: 0 !important;
     width: 0 !important;
-    border: none !important;
-    border-bottom: none !important;
-    background: transparent !important;
+    border-color: #ffffff !important;
+    background-color: #ffffff !important;
+    background: #ffffff !important;
+    color: #ffffff !important;
 }
 
 /* Individual tab buttons - base styling for all tabs */
@@ -237,7 +241,7 @@ section[data-testid="stSidebar"] .stButton > button[kind="primary"] {
     font-weight: 600 !important;
     color: var(--muted) !important;
     border: none !important;
-    border-bottom: none !important;
+    border-bottom: 2px solid #ffffff !important;
     outline: none !important;
     background: transparent !important;
     background-color: transparent !important;
@@ -253,6 +257,7 @@ section[data-testid="stSidebar"] .stButton > button[kind="primary"] {
 .stTabs [data-testid="stTab"] * {
     border: none !important;
     border-bottom: none !important;
+    border-bottom-color: #ffffff !important;
     text-decoration: none !important;
     box-shadow: none !important;
 }
@@ -267,7 +272,8 @@ section[data-testid="stSidebar"] .stButton > button[kind="primary"] {
 .stTabs [aria-selected="true"] {
     color: #ffffff !important;
     border: none !important;
-    border-bottom: none !important;
+    border-bottom: 2px solid #ffffff !important;
+    border-bottom-color: #ffffff !important;
     outline: none !important;
     background: #111111 !important;
     background-color: #111111 !important;
@@ -286,6 +292,7 @@ section[data-testid="stSidebar"] .stButton > button[kind="primary"] {
     color: #ffffff !important;
     text-decoration: none !important;
     border-bottom: none !important;
+    border-bottom-color: #ffffff !important;
     box-shadow: none !important;
 }
 
