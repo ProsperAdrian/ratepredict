@@ -176,7 +176,16 @@ section[data-testid="stSidebar"] .stButton > button[kind="primary"] {
     box-shadow: none !important;
 }
 
-/* Hide tab active underline / highlight bar / border elements */
+/* Bulletproof removal of active tab underline (TabHighlight) & bottom border (TabBorder) */
+.stTabs [role="tablist"] div:not(button *):not([role="tab"]):not([role="tab"] *),
+.stTabs [data-testid="stTabList"] div:not(button *):not([role="tab"]):not([role="tab"] *),
+.stTabs [data-baseweb="tab-list"] div:not(button *):not([role="tab"]):not([role="tab"] *),
+[data-testid="stTabs"] [role="tablist"] div:not(button *):not([role="tab"]):not([role="tab"] *),
+[data-testid="stTabs"] [data-testid="stTabList"] div:not(button *):not([role="tab"]):not([role="tab"] *),
+[data-testid="stTabs"] [data-baseweb="tab-list"] div:not(button *):not([role="tab"]):not([role="tab"] *),
+[role="tablist"] div:not(button *):not([role="tab"]):not([role="tab"] *),
+[data-testid="stTabList"] div:not(button *):not([role="tab"]):not([role="tab"] *),
+[data-baseweb="tab-list"] div:not(button *):not([role="tab"]):not([role="tab"] *),
 [data-baseweb="tab-highlight"],
 [data-testid="stTabHighlight"],
 [data-baseweb="tab-border"],
@@ -185,9 +194,10 @@ div[data-baseweb="tab-highlight"],
 div[data-testid="stTabHighlight"],
 div[data-baseweb="tab-border"],
 div[data-testid="stTabBorder"],
-[role="tablist"] > div:not([role="tab"]):not(button),
-[data-baseweb="tab-list"] > div:not([role="tab"]):not(button),
-[data-testid="stTabList"] > div:not([role="tab"]):not(button),
+div[class*="TabHighlight"],
+div[class*="StyledTabHighlight"],
+div[class*="TabBorder"],
+div[class*="StyledTabBorder"],
 [role="tablist"] > div[style*="position"],
 [role="tablist"] > div[style*="bottom"],
 [data-baseweb="tab-list"] > div[style*="position"],
@@ -206,16 +216,18 @@ div[data-testid="stTabBorder"],
     pointer-events: none !important;
 }
 
-/* Global Reset on all children & pseudo-elements inside tabs to kill underlines/borders */
-[data-testid="stTabs"] *,
-[data-testid="stTabs"] *::before,
-[data-testid="stTabs"] *::after,
+/* Global Reset on pseudo-elements inside tabs */
 .stTabs *,
 .stTabs *::before,
 .stTabs *::after,
+[data-testid="stTabs"] *,
+[data-testid="stTabs"] *::before,
+[data-testid="stTabs"] *::after,
 [role="tablist"] *,
 [role="tablist"] *::before,
-[role="tablist"] *::after {
+[role="tablist"] *::after,
+[role="tab"] *::before,
+[role="tab"] *::after {
     border-bottom: none !important;
     border-top: none !important;
     box-shadow: none !important;
@@ -258,12 +270,16 @@ button[data-testid="stTab"] {
     color: var(--muted, #5f6b76) !important;
     border: none !important;
     border-bottom: none !important;
+    border-top: none !important;
+    border-left: none !important;
+    border-right: none !important;
     background: transparent !important;
     background-color: transparent !important;
     border-radius: 999px !important;
     box-shadow: none !important;
     outline: none !important;
     text-decoration: none !important;
+    background-image: none !important;
     transition: all 0.15s ease-in-out;
 }
 
@@ -287,11 +303,16 @@ button[role="tab"][aria-selected="true"],
     color: #ffffff !important;
     border: none !important;
     border-bottom: none !important;
+    border-top: none !important;
+    border-left: none !important;
+    border-right: none !important;
     background: #111111 !important;
     background-color: #111111 !important;
     border-radius: 999px !important;
     box-shadow: none !important;
     outline: none !important;
+    text-decoration: none !important;
+    background-image: none !important;
 }
 
 /* Active Selected Tab Children */
