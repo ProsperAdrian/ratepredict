@@ -161,52 +161,161 @@ section[data-testid="stSidebar"] .stButton > button[kind="primary"] {
     color: var(--muted) !important;
 }
 
-.stTabs [data-baseweb="tab-list"] {
-    gap: 10px;
-    border-bottom: none !important;
-    margin-bottom: 10px;
-    background: transparent !important;
-}
-.stTabs [data-baseweb="tab-border"] {
-    display: none !important;
-}
 .stTabs,
 .stTabs > div,
 .stTabs [role="tablist"],
+.stTabs [data-baseweb="tab-list"],
+.stTabs [data-testid="stTabList"],
 .stTabs > div > div {
     background: transparent !important;
     background-color: transparent !important;
 }
-.stTabs [data-baseweb="tab"] {
-    padding: 10px 18px;
-    font-size: 0.84rem;
-    font-weight: 600;
-    color: var(--muted);
-    border: none;
-    background: transparent;
-    border-radius: 999px;
-    box-shadow: none !important;
-}
-.stTabs [aria-selected="true"] {
-    color: #ffffff !important;
+
+/* Tab list / bar container */
+.stTabs [role="tablist"],
+.stTabs [data-baseweb="tab-list"],
+.stTabs [data-testid="stTabList"] {
+    gap: 10px !important;
     border: none !important;
-    background: var(--border) !important;
+    border-bottom: none !important;
+    margin-bottom: 10px !important;
     box-shadow: none !important;
 }
-.stTabs [data-baseweb="tab-highlight"] {
-    display: none !important;
-}
+
+.stTabs [role="tablist"]::before,
+.stTabs [role="tablist"]::after,
+.stTabs [data-baseweb="tab-list"]::before,
 .stTabs [data-baseweb="tab-list"]::after,
-.stTabs [data-baseweb="tab"]::after,
-.stTabs [aria-selected="true"]::after {
+.stTabs [data-testid="stTabList"]::before,
+.stTabs [data-testid="stTabList"]::after {
     display: none !important;
+    content: none !important;
+    border: none !important;
     border-bottom: none !important;
     box-shadow: none !important;
 }
+
+/* Underline / highlight / border elements */
+.stTabs [data-baseweb="tab-border"],
+.stTabs [data-baseweb="tab-highlight"],
+.stTabs [data-testid="stTabHighlight"],
+.stTabs [data-testid="stTabBorder"],
+.stTabs [data-testid="stTabFollowUp"] {
+    display: none !important;
+    height: 0 !important;
+    width: 0 !important;
+    border: none !important;
+    background: transparent !important;
+}
+
+/* Individual tab buttons - base styling for all tabs */
+.stTabs [role="tab"],
+.stTabs [data-baseweb="tab"],
+.stTabs [data-testid="stTab"],
+.stTabs button[role="tab"],
+.stTabs [data-baseweb="tab"] button,
+.stTabs [data-testid="stTab"] button {
+    padding: 8px 18px !important;
+    font-size: 0.84rem !important;
+    font-weight: 600 !important;
+    color: var(--muted) !important;
+    border: none !important;
+    border-bottom: none !important;
+    outline: none !important;
+    background: transparent !important;
+    background-color: transparent !important;
+    border-radius: 999px !important;
+    box-shadow: none !important;
+    text-decoration: none !important;
+    transition: all 0.15s ease-in-out !important;
+}
+
+/* Remove underlines/borders on inner text/paragraphs/spans inside tabs */
+.stTabs [role="tab"] *,
+.stTabs [data-baseweb="tab"] *,
+.stTabs [data-testid="stTab"] * {
+    border: none !important;
+    border-bottom: none !important;
+    text-decoration: none !important;
+    box-shadow: none !important;
+}
+
+/* Selected active tab button */
+.stTabs [role="tab"][aria-selected="true"],
+.stTabs [data-baseweb="tab"][aria-selected="true"],
+.stTabs [data-testid="stTab"][aria-selected="true"],
+.stTabs button[role="tab"][aria-selected="true"],
+.stTabs [data-baseweb="tab"][aria-selected="true"] button,
+.stTabs [data-testid="stTab"][aria-selected="true"] button,
+.stTabs [aria-selected="true"] {
+    color: #ffffff !important;
+    border: none !important;
+    border-bottom: none !important;
+    outline: none !important;
+    background: #111111 !important;
+    background-color: #111111 !important;
+    border-radius: 999px !important;
+    box-shadow: none !important;
+    text-decoration: none !important;
+}
+
+/* Text elements inside selected active tab */
+.stTabs [role="tab"][aria-selected="true"] *,
+.stTabs [data-baseweb="tab"][aria-selected="true"] *,
+.stTabs [data-testid="stTab"][aria-selected="true"] *,
+.stTabs [aria-selected="true"] p,
+.stTabs [aria-selected="true"] span,
+.stTabs [aria-selected="true"] div {
+    color: #ffffff !important;
+    text-decoration: none !important;
+}
+
+/* Pseudo-elements on individual tabs */
+.stTabs [role="tab"]::before,
+.stTabs [role="tab"]::after,
+.stTabs [data-baseweb="tab"]::before,
+.stTabs [data-baseweb="tab"]::after,
+.stTabs [data-testid="stTab"]::before,
+.stTabs [data-testid="stTab"]::after,
+.stTabs [aria-selected="true"]::before,
+.stTabs [aria-selected="true"]::after {
+    display: none !important;
+    content: none !important;
+    border: none !important;
+    border-bottom: none !important;
+    box-shadow: none !important;
+}
+
+/* Hover and Focus states */
+.stTabs [role="tab"]:hover,
+.stTabs [data-baseweb="tab"]:hover,
+.stTabs [data-testid="stTab"]:hover {
+    color: var(--ink) !important;
+    border: none !important;
+    border-bottom: none !important;
+    text-decoration: none !important;
+}
+
+.stTabs [role="tab"][aria-selected="true"]:hover,
+.stTabs [data-baseweb="tab"][aria-selected="true"]:hover,
+.stTabs [data-testid="stTab"][aria-selected="true"]:hover {
+    color: #ffffff !important;
+}
+
+.stTabs [role="tab"]:focus,
+.stTabs [data-baseweb="tab"]:focus,
+.stTabs [data-testid="stTab"]:focus {
+    outline: none !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
 .top-section-tabs-anchor {
     height: 0;
 }
-div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div .stTabs [data-baseweb="tab-list"] {
+div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div .stTabs [role="tablist"],
+div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div .stTabs [data-baseweb="tab-list"],
+div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div .stTabs [data-testid="stTabList"] {
     position: sticky;
     top: 2.95rem;
     z-index: 80;
@@ -217,12 +326,18 @@ div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div .st
     border-bottom: none !important;
     box-shadow: none !important;
 }
-div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div .stTabs [data-baseweb="tab-border"] {
+div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div .stTabs [data-baseweb="tab-border"],
+div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div .stTabs [data-testid="stTabHighlight"] {
     display: none !important;
 }
+div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div .stTabs [role="tablist"]::before,
+div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div .stTabs [role="tablist"]::after,
 div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div .stTabs [data-baseweb="tab-list"]::before,
-div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div .stTabs [data-baseweb="tab-list"]::after {
+div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div .stTabs [data-baseweb="tab-list"]::after,
+div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div .stTabs [data-testid="stTabList"]::before,
+div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div .stTabs [data-testid="stTabList"]::after {
     display: none !important;
+    content: none !important;
 }
 
 [data-testid="stDataFrame"] {
