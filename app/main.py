@@ -1399,6 +1399,11 @@ def render_header(result: dict):
     )
 
 
+def get_color_class(val):
+    if val > 0: return " desk-val-up"
+    if val < 0: return " desk-val-down"
+    return ""
+
 def render_rate_and_signal(result: dict):
     signal = result["signal"]
     signal_map = {
@@ -1419,10 +1424,6 @@ def render_rate_and_signal(result: dict):
         },
     }
     signal_ui = signal_map[signal]
-    def get_color_class(val):
-        if val > 0: return " desk-val-up"
-        if val < 0: return " desk-val-down"
-        return ""
 
     st.markdown(
         f"""
