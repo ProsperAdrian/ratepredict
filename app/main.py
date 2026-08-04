@@ -161,17 +161,12 @@ section[data-testid="stSidebar"] .stButton > button[kind="primary"] {
     color: var(--muted) !important;
 }
 
-.stTabs,
-.stTabs *,
-.stTabs *::before,
-.stTabs *::after {
-    border-bottom: none !important;
-    text-decoration: none !important;
-}
-
-.stTabs [data-baseweb="tab-list"],
-.stTabs [data-testid="stTabList"],
-.stTabs [role="tablist"] {
+/* Streamlit Tabs Styling */
+[data-testid="stTabs"],
+[data-testid="stTabList"],
+[data-baseweb="tab-list"],
+[role="tablist"],
+.stTabs {
     gap: 10px !important;
     border: none !important;
     border-bottom: none !important;
@@ -181,13 +176,19 @@ section[data-testid="stSidebar"] .stButton > button[kind="primary"] {
     box-shadow: none !important;
 }
 
-.stTabs [data-baseweb="tab-border"],
-.stTabs [data-testid="stTabBorder"],
-.stTabs [data-baseweb="tab-highlight"],
-.stTabs [data-testid="stTabHighlight"],
-.stTabs [role="tablist"] > div:not([role="tab"]):not(button),
-.stTabs [data-baseweb="tab-list"] > div:not([role="tab"]):not(button),
-.stTabs hr {
+/* Hide tab underline, active indicator highlight, tab border */
+[data-baseweb="tab-highlight"],
+[data-testid="stTabHighlight"],
+[data-baseweb="tab-border"],
+[data-testid="stTabBorder"],
+div[data-baseweb="tab-highlight"],
+div[data-testid="stTabHighlight"],
+div[data-baseweb="tab-border"],
+div[data-testid="stTabBorder"],
+[role="tablist"] > div:not([role="tab"]):not(button),
+[data-baseweb="tab-list"] > div:not([role="tab"]):not(button),
+[data-testid="stTabList"] > div:not([role="tab"]):not(button),
+hr {
     display: none !important;
     height: 0 !important;
     min-height: 0 !important;
@@ -202,27 +203,16 @@ section[data-testid="stSidebar"] .stButton > button[kind="primary"] {
     pointer-events: none !important;
 }
 
-.stTabs,
-.stTabs > div,
-.stTabs [role="tablist"],
-.stTabs [data-testid="stTabList"],
-.stTabs [data-baseweb="tab-list"],
-.stTabs > div > div {
-    background: transparent !important;
-    background-color: transparent !important;
-    box-shadow: none !important;
-    border: none !important;
-}
-
-.stTabs [data-baseweb="tab"],
-.stTabs [data-testid="stTab"],
-.stTabs [role="tab"],
-.stTabs button[role="tab"],
-.stTabs button[data-testid="stTab"] {
+/* Inactive Tab Buttons */
+[data-testid="stTab"],
+[data-baseweb="tab"],
+[role="tab"],
+button[role="tab"],
+button[data-testid="stTab"] {
     padding: 8px 20px !important;
     font-size: 0.84rem !important;
     font-weight: 600 !important;
-    color: var(--muted) !important;
+    color: var(--muted, #5f6b76) !important;
     border: none !important;
     border-bottom: none !important;
     background: transparent !important;
@@ -234,43 +224,56 @@ section[data-testid="stSidebar"] .stButton > button[kind="primary"] {
     transition: all 0.15s ease-in-out;
 }
 
-.stTabs [data-baseweb="tab"] *,
-.stTabs [data-testid="stTab"] *,
-.stTabs [role="tab"] *,
-.stTabs button[role="tab"] * {
+/* Children inside Tab Buttons */
+[data-testid="stTab"] *,
+[data-baseweb="tab"] *,
+[role="tab"] *,
+button[role="tab"] * {
     border-radius: 999px !important;
     border: none !important;
     border-bottom: none !important;
     text-decoration: none !important;
 }
 
-.stTabs [aria-selected="true"],
-.stTabs [data-baseweb="tab"][aria-selected="true"],
-.stTabs [data-testid="stTab"][aria-selected="true"],
-.stTabs button[role="tab"][aria-selected="true"] {
+/* Active Selected Tab Button (Black Capsule Pill) */
+[role="tab"][aria-selected="true"],
+button[role="tab"][aria-selected="true"],
+[data-testid="stTab"][aria-selected="true"],
+[data-baseweb="tab"][aria-selected="true"] {
     color: #ffffff !important;
     border: none !important;
     border-bottom: none !important;
-    background: var(--border, #111111) !important;
-    background-color: var(--border, #111111) !important;
+    background: #111111 !important;
+    background-color: #111111 !important;
     border-radius: 999px !important;
     box-shadow: none !important;
     outline: none !important;
 }
 
-.stTabs [aria-selected="true"] *,
-.stTabs [data-baseweb="tab"][aria-selected="true"] *,
-.stTabs [data-testid="stTab"][aria-selected="true"] *,
-.stTabs button[role="tab"][aria-selected="true"] * {
+/* Active Selected Tab Children */
+[role="tab"][aria-selected="true"] *,
+button[role="tab"][aria-selected="true"] *,
+[data-testid="stTab"][aria-selected="true"] *,
+[data-baseweb="tab"][aria-selected="true"] * {
     color: #ffffff !important;
     border: none !important;
+    border-bottom: none !important;
     text-decoration: none !important;
 }
 
-.stTabs ::before,
-.stTabs ::after,
-.stTabs *::before,
-.stTabs *::after {
+/* Suppress pseudo-elements on tab elements */
+[role="tablist"]::before,
+[role="tablist"]::after,
+[data-testid="stTabList"]::before,
+[data-testid="stTabList"]::after,
+[data-baseweb="tab-list"]::before,
+[data-baseweb="tab-list"]::after,
+[role="tab"]::before,
+[role="tab"]::after,
+[data-testid="stTab"]::before,
+[data-testid="stTab"]::after,
+[data-baseweb="tab"]::before,
+[data-baseweb="tab"]::after {
     display: none !important;
     content: none !important;
     border: none !important;
@@ -279,12 +282,13 @@ section[data-testid="stSidebar"] .stButton > button[kind="primary"] {
     background: transparent !important;
 }
 
+/* Sticky Header for Top Section Tabs */
 .top-section-tabs-anchor {
     height: 0;
 }
-div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div .stTabs [data-baseweb="tab-list"],
-div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div .stTabs [data-testid="stTabList"],
-div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div .stTabs [role="tablist"] {
+div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div [data-baseweb="tab-list"],
+div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div [data-testid="stTabList"],
+div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div [role="tablist"] {
     position: sticky;
     top: 2.95rem;
     z-index: 80;
@@ -296,14 +300,10 @@ div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div .st
     border-bottom: none !important;
     box-shadow: none !important;
 }
-div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div .stTabs [data-baseweb="tab-border"],
-div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div .stTabs [data-testid="stTabBorder"] {
-    display: none !important;
-}
-div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div .stTabs [data-baseweb="tab-list"]::before,
-div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div .stTabs [data-baseweb="tab-list"]::after,
-div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div .stTabs [data-testid="stTabList"]::before,
-div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div .stTabs [data-testid="stTabList"]::after {
+div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div [data-baseweb="tab-border"],
+div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div [data-testid="stTabBorder"],
+div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div [data-baseweb="tab-highlight"],
+div[data-testid="stVerticalBlock"] > div:has(.top-section-tabs-anchor) + div [data-testid="stTabHighlight"] {
     display: none !important;
 }
 
